@@ -50,12 +50,29 @@ document.addEventListener('DOMContentLoaded', function() {
 // 별점 설정
 function setRating(rating) {
     selectedRating = rating;
+    updateStars(rating);
+}
+
+// 별점 호버
+function hoverRating(rating) {
+    updateStars(rating);
+}
+
+// 호버 해제시 원래 선택된 별점으로 복원
+function resetHover() {
+    updateStars(selectedRating);
+}
+
+// 별 업데이트 공통 함수
+function updateStars(rating) {
     const stars = document.querySelectorAll('.star');
     stars.forEach((star, index) => {
         if (index < rating) {
             star.classList.add('active');
+            star.classList.remove('text-gray-300');
         } else {
             star.classList.remove('active');
+            star.classList.add('text-gray-300');
         }
     });
 }

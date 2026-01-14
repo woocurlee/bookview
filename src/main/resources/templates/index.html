@@ -13,60 +13,61 @@
     }
 </style>
 <body class="bg-gradient-to-br from-emerald-500 to-green-600 min-h-screen mb-10">
-    <header th:replace="~{layout :: header}"></header>
+<header th:replace="~{layout :: header}"></header>
 
-    <div class="max-w-7xl mx-auto px-5">
-        <!-- 리뷰 작성 유도 박스 -->
-        <div th:if="${user != null}"
-             onclick="goToWriteReview()"
-             class="bg-white rounded-2xl p-5 mb-8 shadow-lg flex gap-4 items-center cursor-pointer transition-all hover:-translate-y-1 hover:shadow-xl">
-            <img src="/images/default-avatar.svg" alt="프로필" class="w-12 h-12 rounded-full object-cover">
-            <div class="flex-1 py-3 px-5 bg-gray-100 rounded-full text-gray-400 text-base">오늘 읽은 책에 대한 생각을 공유해보세요...</div>
-        </div>
+<div class="max-w-7xl mx-auto px-5">
+    <!-- 리뷰 작성 유도 박스 -->
+    <div th:if="${user != null}"
+         onclick="goToWriteReview()"
+         class="bg-white rounded-2xl p-5 mb-8 shadow-lg flex gap-4 items-center cursor-pointer transition-all hover:-translate-y-1 hover:shadow-xl">
+        <img src="/images/default-avatar.svg" alt="프로필" class="w-12 h-12 rounded-full object-cover">
+        <div class="flex-1 py-3 px-5 bg-gray-100 rounded-full text-gray-400 text-base">오늘 읽은 책에 대한 생각을 공유해보세요...</div>
+    </div>
 
-        <!-- 최근 리뷰 섹션 -->
-        <section th:if="${reviews != null && !reviews.isEmpty()}">
-            <div id="reviewsContainer" th:each="review : ${reviews}">
-                <div class="bg-gray-50 rounded-xl p-5 mb-5 transition-all hover:-translate-y-1 hover:shadow-lg flex gap-5">
-                    <img th:src="${review.bookThumbnail}"
-                         alt="책 표지"
-                         th:if="${review.bookThumbnail != null && !review.bookThumbnail.isEmpty()}"
-                         class="h-48 object-cover rounded-lg flex-shrink-0">
-                    <div class="flex-1">
-                        <div class="text-xl font-bold mb-2 text-gray-800" th:text="${review.title}">리뷰 제목</div>
-                        <div class="text-sm text-gray-600 mb-2.5">
-                            <span th:text="${review.bookTitle}">책 제목</span> -
-                            <span th:text="${review.bookAuthor}">저자</span>
-                        </div>
-                        <div class="text-yellow-400 mb-2.5">
-                            <span th:each="i : ${#numbers.sequence(1, review.rating)}">★</span>
-                            <span th:if="${review.rating < 5}" th:each="i : ${#numbers.sequence(review.rating + 1, 5)}">☆</span>
-                        </div>
-                        <div class="review-quote" th:if="${review.quote != null && !review.quote.isEmpty()}">
-                            "<span th:text="${review.quote}"></span>"
-                        </div>
-                        <div class="text-gray-700 leading-relaxed mb-2.5 overflow-hidden line-clamp-3" th:utext="${review.content}">리뷰 내용...</div>
-                        <div class="text-xs text-gray-400"
-                             th:text="${#temporals.format(review.createdAt, 'yyyy-MM-dd HH:mm')}">
-                            2024-12-24 10:00
-                        </div>
+    <!-- 최근 리뷰 섹션 -->
+    <section th:if="${reviews != null && !reviews.isEmpty()}">
+        <div id="reviewsContainer" th:each="review : ${reviews}">
+            <div class="bg-gray-50 rounded-xl p-5 mb-5 transition-all hover:-translate-y-1 hover:shadow-lg flex gap-5">
+                <img th:src="${review.bookThumbnail}"
+                     alt="책 표지"
+                     th:if="${review.bookThumbnail != null && !review.bookThumbnail.isEmpty()}"
+                     class="h-48 object-cover rounded-lg flex-shrink-0">
+                <div class="flex-1">
+                    <div class="text-xl font-bold mb-2 text-gray-800" th:text="${review.title}">리뷰 제목</div>
+                    <div class="text-sm text-gray-600 mb-2.5">
+                        <span th:text="${review.bookTitle}">책 제목</span> -
+                        <span th:text="${review.bookAuthor}">저자</span>
+                    </div>
+                    <div class="text-yellow-400 mb-2.5">
+                        <span th:each="i : ${#numbers.sequence(1, review.rating)}">★</span><span th:if="${review.rating < 5}" th:each="i : ${#numbers.sequence(review.rating + 1, 5)}">☆</span>
+                    </div>
+                    <div class="review-quote" th:if="${review.quote != null && !review.quote.isEmpty()}">
+                        "<span th:text="${review.quote}"></span>"
+                    </div>
+                    <div class="text-gray-700 leading-relaxed mb-2.5 overflow-hidden line-clamp-3"
+                         th:utext="${review.content}">리뷰 내용...
+                    </div>
+                    <div class="text-xs text-gray-400"
+                         th:text="${#temporals.format(review.createdAt, 'yyyy-MM-dd HH:mm')}">
+                        2024-12-24 10:00
                     </div>
                 </div>
             </div>
-            <div id="loading" class="text-center p-5 hidden">
-                <p>로딩 중...</p>
-            </div>
-            <div id="endMessage" class="text-center p-5 hidden">
-                <p>모든 리뷰를 불러왔습니다. 🎉</p>
-            </div>
-        </section>
-    </div>
+        </div>
+        <div id="loading" class="text-center p-5 hidden">
+            <p>로딩 중...</p>
+        </div>
+        <div id="endMessage" class="text-center p-5 hidden">
+            <p>모든 리뷰를 불러왔습니다. 🎉</p>
+        </div>
+    </section>
+</div>
 
-    <script>
-        // hasMore 초기값 설정
-        hasMore = /*[[${hasMoreReviews}]]*/ true;
-    </script>
-    <script src="/js/index.js"></script>
-    <script th:replace="~{layout :: mobileMenuScript}"></script>
+<script>
+    // hasMore 초기값 설정
+    hasMore = /*[[${hasMoreReviews}]]*/ true;
+</script>
+<script src="/js/index.js"></script>
+<script th:replace="~{layout :: mobileMenuScript}"></script>
 </body>
 </html>

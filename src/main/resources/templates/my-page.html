@@ -1,17 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{layout :: head('마이페이지 - BookView')}"></head>
-<style>
-    .review-quote {
-        background: #f0f0f0;
-        border-left: 4px solid #10b981;
-        padding: 12px 16px;
-        margin-bottom: 10px;
-        font-style: italic;
-        color: #555;
-        border-radius: 4px;
-    }
-</style>
 <body class="bg-gradient-to-br from-emerald-500 to-green-600 min-h-screen">
     <header th:replace="~{layout :: header}"></header>
 
@@ -54,35 +43,22 @@
             <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-6">📝 내가 쓴 리뷰</h2>
 
             <div th:if="${myReviews != null && !myReviews.isEmpty()}">
-                <div th:each="review : ${myReviews}" class="mb-6 pb-6 border-b border-gray-200 last:border-0">
-                    <div class="flex flex-col md:flex-row gap-4 md:gap-5">
+                <!-- 인스타그램 스타일 그리드 -->
+                <div class="grid grid-cols-3 gap-1 md:gap-2">
+                    <div th:each="review : ${myReviews}" class="relative aspect-square group cursor-pointer overflow-hidden rounded-lg shadow">
+                        <!-- 책 썸네일 -->
                         <img th:src="${review.bookThumbnail}"
                              alt="책 표지"
                              th:if="${review.bookThumbnail != null && !review.bookThumbnail.isEmpty()}"
-                             class="w-32 h-44 md:h-48 object-cover rounded-lg mx-auto md:mx-0 flex-shrink-0">
-                        <div class="flex-1">
-                            <div class="text-lg md:text-xl font-bold mb-2 text-gray-800" th:text="${review.title}">리뷰 제목</div>
-                            <div class="text-xs md:text-sm text-gray-600 mb-2.5">
-                                <span th:text="${review.bookTitle}">책 제목</span> -
-                                <span th:text="${review.bookAuthor}">저자</span>
-                            </div>
-                            <div class="text-yellow-400 mb-2.5">
-                                <span th:each="i : ${#numbers.sequence(1, review.rating)}">★</span>
-                                <span th:if="${review.rating < 5}" th:each="i : ${#numbers.sequence(review.rating + 1, 5)}">☆</span>
-                            </div>
-                            <div class="review-quote" th:if="${review.quote != null && !review.quote.isEmpty()}">
-                                "<span th:text="${review.quote}"></span>"
-                            </div>
-                            <div class="text-sm md:text-base text-gray-700 leading-relaxed mb-2.5 line-clamp-3" th:utext="${review.content}">리뷰 내용...</div>
-                            <div class="flex gap-2 items-center">
-                                <span class="text-xs text-gray-400"
-                                     th:text="${#temporals.format(review.createdAt, 'yyyy-MM-dd HH:mm')}">
-                                    2024-12-24 10:00
-                                </span>
-                                <button onclick="deleteReview(this)" th:data-review-id="${review.id}"
-                                        class="ml-auto text-xs md:text-sm text-red-500 hover:text-red-700 font-semibold">
-                                    🗑️ 삭제
-                                </button>
+                             class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
+
+                        <!-- 호버 오버레이 -->
+                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition-all duration-300 flex items-center justify-center">
+                            <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-center p-4">
+                                <h3 class="text-white font-bold text-sm md:text-base mb-2" th:text="${review.title}">제목</h3>
+                                <div class="text-yellow-400 text-xs md:text-sm">
+                                    <span th:each="i : ${#numbers.sequence(1, review.rating)}">★</span><span th:if="${review.rating < 5}" th:each="i : ${#numbers.sequence(review.rating + 1, 5)}">☆</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -160,7 +136,9 @@
             }
         }
 
-        async function deleteReview(button) {
+        async function deleteReview(button, event) {
+            event.stopPropagation();
+
             if (!confirm('정말 이 리뷰를 삭제하시겠습니까?')) {
                 return;
             }

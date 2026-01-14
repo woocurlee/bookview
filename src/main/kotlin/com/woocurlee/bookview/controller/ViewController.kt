@@ -76,8 +76,8 @@ class ViewController(
             val user = userRepository.findByGoogleId(googleId)
             model.addAttribute("user", user)
 
-            // 내가 쓴 리뷰 가져오기
-            val myReviews = reviewService.getReviewsByUserId(googleId)
+            // 내가 쓴 리뷰 가져오기 (최신순 정렬)
+            val myReviews = reviewService.getReviewsByUserId(googleId).sortedByDescending { it.createdAt }
             model.addAttribute("myReviews", myReviews)
 
             // 평균 별점 계산
