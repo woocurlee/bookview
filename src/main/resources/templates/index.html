@@ -27,7 +27,8 @@
     <!-- 최근 리뷰 섹션 -->
     <section th:if="${reviews != null && !reviews.isEmpty()}">
         <div id="reviewsContainer" th:each="review : ${reviews}">
-            <div class="bg-gray-50 rounded-xl p-5 mb-5 transition-all hover:-translate-y-1 hover:shadow-lg flex gap-5">
+            <a th:href="@{/review/{id}(id=${review.id})}" class="block no-underline">
+                <div class="bg-gray-50 rounded-xl p-5 mb-5 transition-all hover:-translate-y-1 hover:shadow-lg flex gap-5 cursor-pointer">
                 <img th:src="${review.bookThumbnail}"
                      alt="책 표지"
                      th:if="${review.bookThumbnail != null && !review.bookThumbnail.isEmpty()}"
@@ -53,6 +54,7 @@
                     </div>
                 </div>
             </div>
+        </a>
         </div>
         <div id="loading" class="text-center p-5 hidden">
             <p>로딩 중...</p>

@@ -45,7 +45,9 @@
             <div th:if="${myReviews != null && !myReviews.isEmpty()}">
                 <!-- 인스타그램 스타일 그리드 -->
                 <div class="grid grid-cols-3 gap-1 md:gap-2">
-                    <div th:each="review : ${myReviews}" class="relative aspect-square group cursor-pointer overflow-hidden rounded-lg shadow">
+                    <a th:each="review : ${myReviews}"
+                       th:href="@{/review/{id}(id=${review.id})}"
+                       class="relative aspect-square group cursor-pointer overflow-hidden rounded-lg shadow block">
                         <!-- 책 썸네일 -->
                         <img th:src="${review.bookThumbnail}"
                              alt="책 표지"
@@ -61,7 +63,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </a>
                 </div>
             </div>
 

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('리뷰 상세 - BookView')}"></head>
+<style>
+    .review-quote {
+        background: #f0f0f0;
+        border-left: 4px solid #10b981;
+        padding: 12px 16px;
+        margin-bottom: 10px;
+        font-style: italic;
+        color: #555;
+        border-radius: 4px;
+    }
+</style>
+<body class="bg-gradient-to-br from-emerald-500 to-green-600 min-h-screen">
+    <header th:replace="~{layout :: header}"></header>
+
+    <div class="max-w-4xl mx-auto px-5 py-5">
+        <div class="bg-white rounded-2xl p-6 md:p-10 shadow-lg">
+            <!-- 상단 헤더 -->
+            <div class="flex justify-between items-center mb-6">
+                <button onclick="history.back()" class="text-gray-600 hover:text-emerald-600 flex items-center gap-2">
+                    <span class="text-2xl">←</span>
+                    <span>뒤로가기</span>
+                </button>
+
+                <!-- 더보기 버튼 (본인만) -->
+                <div th:if="${user != null && user.googleId == review.userId}" class="relative">
+                    <button onclick="toggleMenu()" class="text-gray-600 hover:text-gray-800 text-2xl px-2">
+                        ⋯
+                    </button>
+                    <!-- 드롭다운 메뉴 -->
+                    <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                        <button onclick="deleteReview()"
+                                th:data-review-id="${review.id}"
+                                class="w-full text-left px-4 py-3 hover:text-gray-500 rounded-lg transition-colors">
+                            삭제하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-6 mb-8">
+                <!-- 책 표지 -->
+                <img th:src="${review.bookThumbnail}"
+                     alt="책 표지"
+                     th:if="${review.bookThumbnail != null && !review.bookThumbnail.isEmpty()}"
+                     class="w-48 h-64 object-cover rounded-lg shadow-md mx-auto md:mx-0 flex-shrink-0">
+
+                <div class="flex-1">
+                    <!-- 리뷰 제목 -->
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4" th:text="${review.title}">리뷰 제목</h1>
+
+                    <!-- 책 정보 -->
+                    <div class="text-gray-600 mb-4">
+                        <div class="text-lg font-semibold mb-1" th:text="${review.bookTitle}">책 제목</div>
+                        <div class="text-sm" th:text="${review.bookAuthor}">저자</div>
+                    </div>
+
+                    <!-- 별점 -->
+                    <div class="text-yellow-400 text-2xl mb-4">
+                        <span th:each="i : ${#numbers.sequence(1, review.rating)}">★</span><span th:if="${review.rating < 5}" th:each="i : ${#numbers.sequence(review.rating + 1, 5)}">☆</span>
+                    </div>
+
+                    <!-- 작성자 및 날짜 -->
+                    <div class="flex items-center gap-3 mb-4 pb-4 border-b border-gray-200">
+                        <img src="/images/default-avatar.svg" alt="프로필" class="w-10 h-10 rounded-full">
+                        <div>
+                            <div class="font-semibold text-gray-800" th:text="${author?.nickname}">작성자</div>
+                            <div class="text-xs text-gray-400" th:text="${#temporals.format(review.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-24 10:00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 명언 -->
+            <div class="review-quote mb-6" th:if="${review.quote != null && !review.quote.isEmpty()}">
+                "<span th:text="${review.quote}"></span>"
+            </div>
+
+            <!-- 리뷰 내용 -->
+            <div class="prose max-w-none">
+                <div class="text-gray-700 leading-relaxed text-base md:text-lg" th:utext="${review.content}">
+                    리뷰 내용...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('dropdownMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        // 메뉴 외부 클릭시 닫기
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('dropdownMenu');
+            const button = event.target.closest('button');
+
+            if (menu && !menu.contains(event.target) && (!button || button.onclick?.toString().indexOf('toggleMenu') === -1)) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        async function deleteReview() {
+            if (!confirm('정말 이 리뷰를 삭제하시겠습니까?')) {
+                return;
+            }
+
+            const reviewId = document.querySelector('[data-review-id]').getAttribute('data-review-id');
+
+            try {
+                const response = await fetch(`/api/reviews/${reviewId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert('리뷰가 삭제되었습니다!');
+                    window.location.href = '/';
+                } else {
+                    alert('리뷰 삭제에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('삭제 오류:', error);
+                alert('리뷰 삭제에 실패했습니다.');
+            }
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const overlay = document.getElementById('mobileMenuOverlay');
+            if (menu.classList.contains('-translate-x-full')) {
+                menu.classList.remove('-translate-x-full');
+                menu.classList.add('translate-x-0');
+                overlay.classList.remove('hidden');
+            } else {
+                menu.classList.add('-translate-x-full');
+                menu.classList.remove('translate-x-0');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function openLogoutModal() {
+            document.getElementById('logoutModal').classList.remove('hidden');
+        }
+
+        function closeLogoutModal() {
+            document.getElementById('logoutModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

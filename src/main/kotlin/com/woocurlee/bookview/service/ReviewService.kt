@@ -39,4 +39,6 @@ class ReviewService(
     fun deleteReview(id: String) {
         reviewRepository.deleteById(id)
     }
+
+    fun getReviewById(id: String): Review? = reviewRepository.findById(id).orElse(null)
 }

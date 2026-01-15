@@ -87,4 +87,30 @@ class ViewController(
 
         return "my-page"
     }
+
+    @GetMapping("/review/{id}")
+    fun reviewDetail(
+        @org.springframework.web.bind.annotation.PathVariable id: String,
+        model: Model,
+        @AuthenticationPrincipal principal: Any?,
+    ): String {
+        val review = reviewService.getReviewById(id) ?: return "redirect:/"
+        model.addAttribute("review", review)
+
+        // 작성자 정보
+        val author = userRepository.findByGoogleId(review.userId)
+        model.addAttribute("author", author)
+
+        // 현재 사용자 정보
+        if (principal != null) {
+            val attributes = principal as? Map<*, *>
+            val googleId = attributes?.get("sub")?.toString()
+            if (googleId != null) {
+                val user = userRepository.findByGoogleId(googleId)
+                model.addAttribute("user", user)
+            }
+        }
+
+        return "review-detail"
+    }
 }
