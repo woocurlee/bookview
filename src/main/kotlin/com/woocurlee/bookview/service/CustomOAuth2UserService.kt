@@ -1,6 +1,7 @@
 package com.woocurlee.bookview.service
 
 import com.woocurlee.bookview.common.SequenceNames
+import com.woocurlee.bookview.domain.Status
 import com.woocurlee.bookview.domain.User
 import com.woocurlee.bookview.repository.UserRepository
 import java.time.LocalDateTime
@@ -22,7 +23,7 @@ class CustomOAuth2UserService(
         val email = oAuth2User.attributes["email"] as? String
         val profileImageUrl = oAuth2User.attributes["picture"] as? String
 
-        var user = userRepository.findByGoogleId(googleId)
+        var user = userRepository.findByGoogleIdAndStatus(googleId, Status.ACTIVE)
 
         if (user == null) {
             val userNo = sequenceService.getNextSequence(SequenceNames.USER_SEQ)
@@ -33,6 +34,7 @@ class CustomOAuth2UserService(
                     nickname = nickname,
                     email = email,
                     profileImageUrl = profileImageUrl,
+                    status = Status.ACTIVE,
                 )
         } else {
             user =

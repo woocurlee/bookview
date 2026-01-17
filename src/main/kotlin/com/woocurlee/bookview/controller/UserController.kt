@@ -1,5 +1,6 @@
 package com.woocurlee.bookview.controller
 
+import com.woocurlee.bookview.domain.Status
 import com.woocurlee.bookview.domain.toResponse
 import com.woocurlee.bookview.dto.UserResponse
 import com.woocurlee.bookview.repository.UserRepository
@@ -51,7 +52,8 @@ class UserController(
         val attributes = principal as Map<*, *>
         val googleId = attributes["sub"].toString()
 
-        val user = userRepository.findByGoogleId(googleId) ?: return ResponseEntity.notFound().build()
+        val user =
+            userRepository.findByGoogleIdAndStatus(googleId, Status.ACTIVE) ?: return ResponseEntity.notFound().build()
 
         val updatedUser = user.copy(nickname = request.nickname)
         userRepository.save(updatedUser)

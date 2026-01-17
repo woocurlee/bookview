@@ -1,5 +1,6 @@
 package com.woocurlee.bookview.controller
 
+import com.woocurlee.bookview.domain.Status
 import com.woocurlee.bookview.repository.UserRepository
 import com.woocurlee.bookview.service.ReviewService
 import org.slf4j.LoggerFactory
@@ -33,14 +34,7 @@ class ViewController(
         model.addAttribute("reviews", reviewsPage.content)
         model.addAttribute("hasMoreReviews", reviewsPage.hasNext())
 
-        if (principal != null) {
-            val attributes = principal as? Map<*, *>
-            val googleId = attributes?.get("sub")?.toString()
-            if (googleId != null) {
-                val user = userRepository.findByGoogleId(googleId)
-                model.addAttribute("user", user)
-            }
-        }
+        addUserToModel(principal, userRepository, model)
 
         return "index"
     }
@@ -50,14 +44,7 @@ class ViewController(
         model: Model,
         @AuthenticationPrincipal principal: Any?,
     ): String {
-        if (principal != null) {
-            val attributes = principal as? Map<*, *>
-            val googleId = attributes?.get("sub")?.toString()
-            if (googleId != null) {
-                val user = userRepository.findByGoogleId(googleId)
-                model.addAttribute("user", user)
-            }
-        }
+        addUserToModel(principal, userRepository, model)
         return "write-review"
     }
 
@@ -73,7 +60,7 @@ class ViewController(
         val attributes = principal as? Map<*, *>
         val googleId = attributes?.get("sub")?.toString()
         if (googleId != null) {
-            val user = userRepository.findByGoogleId(googleId)
+            val user = userRepository.findByGoogleIdAndStatus(googleId, Status.ACTIVE)
             model.addAttribute("user", user)
 
             // 내가 쓴 리뷰 가져오기 (최신순 정렬)
@@ -98,18 +85,11 @@ class ViewController(
         model.addAttribute("review", review)
 
         // 작성자 정보
-        val author = userRepository.findByGoogleId(review.userId)
+        val author = userRepository.findByGoogleIdAndStatus(review.userId, Status.ACTIVE)
         model.addAttribute("author", author)
 
         // 현재 사용자 정보
-        if (principal != null) {
-            val attributes = principal as? Map<*, *>
-            val googleId = attributes?.get("sub")?.toString()
-            if (googleId != null) {
-                val user = userRepository.findByGoogleId(googleId)
-                model.addAttribute("user", user)
-            }
-        }
+        addUserToModel(principal, userRepository, model)
 
         return "review-detail"
     }

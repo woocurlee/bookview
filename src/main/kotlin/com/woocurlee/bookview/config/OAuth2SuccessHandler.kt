@@ -1,5 +1,6 @@
 package com.woocurlee.bookview.config
 
+import com.woocurlee.bookview.domain.Status
 import com.woocurlee.bookview.repository.UserRepository
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
@@ -30,7 +31,7 @@ class OAuth2SuccessHandler(
         log.info("OAuth2 로그인 성공: googleId=$googleId, email=$email, name=$name")
 
         // DB에서 사용자 조회
-        val user = userRepository.findByGoogleId(googleId)
+        val user = userRepository.findByGoogleIdAndStatus(googleId, Status.ACTIVE)
         val nickname = user?.nickname ?: name
 
         // JWT 생성

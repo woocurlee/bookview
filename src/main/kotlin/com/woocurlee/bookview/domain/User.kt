@@ -14,6 +14,7 @@ data class User(
     val nickname: String,
     val profileImageUrl: String? = null,
     val email: String? = null,
+    val status: Status = Status.ACTIVE, // 유저 상태
     val createdAt: LocalDateTime = LocalDateTime.now(),
     val lastLoginAt: LocalDateTime = LocalDateTime.now(),
 )
