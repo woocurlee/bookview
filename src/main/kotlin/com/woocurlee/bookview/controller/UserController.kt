@@ -2,7 +2,6 @@ package com.woocurlee.bookview.controller
 
 import com.woocurlee.bookview.domain.toResponse
 import com.woocurlee.bookview.dto.UpdateProfileRequest
-import com.woocurlee.bookview.dto.UserResponse
 import com.woocurlee.bookview.service.UserService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -20,14 +19,18 @@ class UserController(
     fun updateProfile(
         @RequestBody request: UpdateProfileRequest,
         @AuthenticationPrincipal principal: Any,
-    ): ResponseEntity<UserResponse> {
+    ): ResponseEntity<Any> {
         val attributes = principal as Map<*, *>
         val googleId = attributes["sub"].toString()
 
-        val updatedUser =
-            userService.updateNickname(googleId, request.nickname)
-                ?: return ResponseEntity.notFound().build()
+        try {
+            val updatedUser =
+                userService.updateNickname(googleId, request.nickname)
+                    ?: return ResponseEntity.notFound().build()
 
-        return ResponseEntity.ok(updatedUser.toResponse())
+            return ResponseEntity.ok(updatedUser.toResponse())
+        } catch (e: IllegalArgumentException) {
+            return ResponseEntity.badRequest().body(mapOf("message" to e.message))
+        }
     }
 }

@@ -12,6 +12,7 @@ data class User(
     val userNo: Long? = null,
     val googleId: String,
     val nickname: String,
+    val isNicknameSet: Boolean = false, // 닉네임 설정 여부
     val profileImageUrl: String? = null,
     val email: String? = null,
     val status: Status = Status.ACTIVE, // 유저 상태

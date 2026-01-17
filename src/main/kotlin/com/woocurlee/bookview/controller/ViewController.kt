@@ -20,6 +20,12 @@ class ViewController(
         model: Model,
         @AuthenticationPrincipal principal: Any?,
     ): String {
+        // 닉네임 미설정 체크
+        val user = addUserToModel(principal, userService, model)
+        if (user != null && !user.isNicknameSet) {
+            return "redirect:/setup-nickname"
+        }
+
         // 최근 리뷰 10개 추가 (페이징)
         val pageable =
             org.springframework.data.domain.PageRequest.of(
@@ -33,9 +39,25 @@ class ViewController(
         model.addAttribute("reviews", reviewsPage.content)
         model.addAttribute("hasMoreReviews", reviewsPage.hasNext())
 
-        addUserToModel(principal, userService, model)
-
         return "index"
+    }
+
+    @GetMapping("/setup-nickname")
+    fun setupNickname(
+        model: Model,
+        @AuthenticationPrincipal principal: Any?,
+    ): String {
+        if (principal == null) {
+            return "redirect:/oauth2/authorization/google"
+        }
+
+        // 이미 닉네임이 설정된 경우 홈으로 리다이렉트
+        val user = addUserToModel(principal, userService, model)
+        if (user != null && user.isNicknameSet) {
+            return "redirect:/"
+        }
+
+        return "setup-nickname"
     }
 
     @GetMapping("/write-review")
@@ -43,7 +65,10 @@ class ViewController(
         model: Model,
         @AuthenticationPrincipal principal: Any?,
     ): String {
-        addUserToModel(principal, userService, model)
+        val user = addUserToModel(principal, userService, model)
+        if (user != null && !user.isNicknameSet) {
+            return "redirect:/setup-nickname"
+        }
         return "write-review"
     }
 
@@ -60,6 +85,12 @@ class ViewController(
         val googleId = attributes?.get("sub")?.toString()
         if (googleId != null) {
             val user = userService.findByGoogleId(googleId)
+
+            // 닉네임 미설정 체크
+            if (user != null && !user.isNicknameSet) {
+                return "redirect:/setup-nickname"
+            }
+
             model.addAttribute("user", user)
 
             // 내가 쓴 리뷰 가져오기 (최신순 정렬)
@@ -80,15 +111,17 @@ class ViewController(
         model: Model,
         @AuthenticationPrincipal principal: Any?,
     ): String {
+        val user = addUserToModel(principal, userService, model)
+        if (user != null && !user.isNicknameSet) {
+            return "redirect:/setup-nickname"
+        }
+
         val review = reviewService.getReviewByReviewNo(reviewNo) ?: return "redirect:/"
         model.addAttribute("review", review)
 
         // 작성자 정보
         val author = userService.findByGoogleId(review.userId)
         model.addAttribute("author", author)
-
-        // 현재 사용자 정보
-        addUserToModel(principal, userService, model)
 
         return "review-detail"
     }

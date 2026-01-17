@@ -9,4 +9,9 @@ interface UserRepository : MongoRepository<User, String> {
         googleId: String,
         status: Status,
     ): User?
+
+    fun existsByNicknameAndStatus(
+        nickname: String,
+        status: Status,
+    ): Boolean
 }
