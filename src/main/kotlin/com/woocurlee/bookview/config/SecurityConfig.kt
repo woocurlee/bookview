@@ -31,6 +31,7 @@ class SecurityConfig(
                         "/books",
                         "/write-review",
                         "/my-page",
+                        "/r/**",
                         "/setup-nickname",
                         "/login/**",
                         "/oauth2/**",

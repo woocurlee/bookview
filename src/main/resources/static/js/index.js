@@ -74,7 +74,7 @@ function createReviewCard(review) {
         : '';
 
     return `
-        <a href="/review/${review.reviewNo}" class="block no-underline">
+        <a href="/r/${review.reviewNo}" class="block no-underline">
             <div class="bg-gray-50 rounded-xl p-5 mb-5 transition-all hover:-translate-y-1 hover:shadow-lg flex gap-5 cursor-pointer">
                 ${thumbnail}
                 <div class="flex-1">

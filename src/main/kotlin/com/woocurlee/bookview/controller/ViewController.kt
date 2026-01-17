@@ -105,7 +105,7 @@ class ViewController(
         return "my-page"
     }
 
-    @GetMapping("/review/{reviewNo}")
+    @GetMapping("/r/{reviewNo}")
     fun reviewDetail(
         @org.springframework.web.bind.annotation.PathVariable reviewNo: Long,
         model: Model,

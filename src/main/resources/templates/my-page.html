@@ -50,7 +50,7 @@
                 <!-- 인스타그램 스타일 그리드 -->
                 <div class="grid grid-cols-3 gap-1 md:gap-2">
                     <a th:each="review : ${myReviews}"
-                       th:href="@{/review/{reviewNo}(reviewNo=${review.reviewNo})}"
+                       th:href="@{/r/{reviewNo}(reviewNo=${review.reviewNo})}"
                        class="relative aspect-square group cursor-pointer overflow-hidden rounded-lg shadow block">
                         <!-- 책 썸네일 -->
                         <img th:src="${review.bookThumbnail}"
