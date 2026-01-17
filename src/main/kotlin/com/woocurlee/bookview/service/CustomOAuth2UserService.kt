@@ -1,5 +1,6 @@
 package com.woocurlee.bookview.service
 
+import com.woocurlee.bookview.common.SequenceNames
 import com.woocurlee.bookview.domain.User
 import com.woocurlee.bookview.repository.UserRepository
 import java.time.LocalDateTime
@@ -24,7 +25,7 @@ class CustomOAuth2UserService(
         var user = userRepository.findByGoogleId(googleId)
 
         if (user == null) {
-            val userNo = sequenceService.getNextSequence("user_seq")
+            val userNo = sequenceService.getNextSequence(SequenceNames.USER_SEQ)
             user =
                 User(
                     userNo = userNo,

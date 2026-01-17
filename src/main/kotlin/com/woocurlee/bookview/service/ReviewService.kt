@@ -1,5 +1,6 @@
 package com.woocurlee.bookview.service
 
+import com.woocurlee.bookview.common.SequenceNames
 import com.woocurlee.bookview.domain.Review
 import com.woocurlee.bookview.repository.ReviewRepository
 import java.time.LocalDateTime
@@ -15,7 +16,7 @@ class ReviewService(
     fun getReviewsByUserId(userId: String): List<Review> = reviewRepository.findByUserId(userId)
 
     fun createReview(review: Review): Review {
-        val reviewNo = sequenceService.getNextSequence("review_seq")
+        val reviewNo = sequenceService.getNextSequence(SequenceNames.REVIEW_SEQ)
         val reviewWithNo = review.copy(reviewNo = reviewNo)
         return reviewRepository.save(reviewWithNo)
     }

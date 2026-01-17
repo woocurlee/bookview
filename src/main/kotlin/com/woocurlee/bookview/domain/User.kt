@@ -1,10 +1,11 @@
 package com.woocurlee.bookview.domain
 
+import com.woocurlee.bookview.common.MongoCollections
 import java.time.LocalDateTime
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 
-@Document(collection = "users")
+@Document(collection = MongoCollections.USERS)
 data class User(
     @Id
     val id: String? = null,
