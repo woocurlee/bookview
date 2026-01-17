@@ -88,13 +88,13 @@ class ViewController(
         return "my-page"
     }
 
-    @GetMapping("/review/{id}")
+    @GetMapping("/review/{reviewNo}")
     fun reviewDetail(
-        @org.springframework.web.bind.annotation.PathVariable id: String,
+        @org.springframework.web.bind.annotation.PathVariable reviewNo: Long,
         model: Model,
         @AuthenticationPrincipal principal: Any?,
     ): String {
-        val review = reviewService.getReviewById(id) ?: return "redirect:/"
+        val review = reviewService.getReviewByReviewNo(reviewNo) ?: return "redirect:/"
         model.addAttribute("review", review)
 
         // 작성자 정보

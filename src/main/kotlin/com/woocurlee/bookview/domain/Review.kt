@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 data class Review(
     @Id
     val id: String? = null,
+    val reviewNo: Long? = null, // URL에 노출할 순차 번호
     val userId: String,
     val title: String,
     val bookTitle: String,

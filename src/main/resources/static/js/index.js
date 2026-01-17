@@ -64,7 +64,7 @@ async function loadMoreReviews() {
 
 function createReviewCard(review) {
     const thumbnail = review.bookThumbnail
-        ? `<img src="${review.bookThumbnail}" alt="책 표지" class="w-20 h-28 object-cover rounded-lg flex-shrink-0">`
+        ? `<img src="${review.bookThumbnail}" alt="책 표지" class="h-48 object-cover rounded-lg flex-shrink-0">`
         : '';
 
     const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
@@ -74,20 +74,22 @@ function createReviewCard(review) {
         : '';
 
     return `
-        <div class="bg-gray-50 rounded-xl p-5 mb-5 transition-all hover:-translate-y-1 hover:shadow-lg flex gap-5">
-            ${thumbnail}
-            <div class="flex-1">
-                <div class="text-xl font-bold mb-2 text-gray-800">${review.title}</div>
-                <div class="text-sm text-gray-600 mb-2.5">
-                    <span>${review.bookTitle}</span> -
-                    <span>${review.bookAuthor}</span>
+        <a href="/review/${review.reviewNo}" class="block no-underline">
+            <div class="bg-gray-50 rounded-xl p-5 mb-5 transition-all hover:-translate-y-1 hover:shadow-lg flex gap-5 cursor-pointer">
+                ${thumbnail}
+                <div class="flex-1">
+                    <div class="text-xl font-bold mb-2 text-gray-800">${review.title}</div>
+                    <div class="text-sm text-gray-600 mb-2.5">
+                        <span>${review.bookTitle}</span> -
+                        <span>${review.bookAuthor}</span>
+                    </div>
+                    <div class="text-yellow-400 mb-2.5">${stars}</div>
+                    ${quote}
+                    <div class="text-gray-700 leading-relaxed mb-2.5 overflow-hidden line-clamp-3">${review.content}</div>
+                    <div class="text-xs text-gray-400">${new Date(review.createdAt).toLocaleString('ko-KR')}</div>
                 </div>
-                <div class="text-yellow-400 mb-2.5">${stars}</div>
-                ${quote}
-                <div class="text-gray-700 leading-relaxed mb-2.5 overflow-hidden line-clamp-3">${review.content}</div>
-                <div class="text-xs text-gray-400">${new Date(review.createdAt).toLocaleString('ko-KR')}</div>
             </div>
-        </div>
+        </a>
     `;
 }
 

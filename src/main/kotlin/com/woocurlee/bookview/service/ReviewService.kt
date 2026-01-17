@@ -10,10 +10,15 @@ import org.springframework.stereotype.Service
 @Service
 class ReviewService(
     private val reviewRepository: ReviewRepository,
+    private val sequenceService: SequenceService,
 ) {
     fun getReviewsByUserId(userId: String): List<Review> = reviewRepository.findByUserId(userId)
 
-    fun createReview(review: Review): Review = reviewRepository.save(review)
+    fun createReview(review: Review): Review {
+        val reviewNo = sequenceService.getNextSequence("review_seq")
+        val reviewWithNo = review.copy(reviewNo = reviewNo)
+        return reviewRepository.save(reviewWithNo)
+    }
 
     fun getAllReviews(): List<Review> = reviewRepository.findAll()
 
@@ -41,4 +46,6 @@ class ReviewService(
     }
 
     fun getReviewById(id: String): Review? = reviewRepository.findById(id).orElse(null)
+
+    fun getReviewByReviewNo(reviewNo: Long): Review? = reviewRepository.findByReviewNo(reviewNo)
 }
