@@ -1,6 +1,8 @@
 package com.woocurlee.bookview.controller
 
 import com.woocurlee.bookview.domain.Review
+import com.woocurlee.bookview.dto.CreateReviewRequest
+import com.woocurlee.bookview.dto.UpdateReviewRequest
 import com.woocurlee.bookview.service.ReviewService
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -87,20 +89,3 @@ class ReviewController(
         return ResponseEntity.noContent().build()
     }
 }
-
-data class CreateReviewRequest(
-    val title: String,
-    val bookTitle: String,
-    val bookAuthor: String,
-    val bookIsbn: String,
-    val bookThumbnail: String?,
-    val rating: Int,
-    val quote: String,
-    val content: String,
-)
-
-data class UpdateReviewRequest(
-    val title: String,
-    val content: String,
-    val rating: Int,
-)
