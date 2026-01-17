@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 data class User(
     @Id
     val id: String? = null,
+    val userNo: Long? = null,
     val googleId: String,
     val nickname: String,
     val profileImageUrl: String? = null,

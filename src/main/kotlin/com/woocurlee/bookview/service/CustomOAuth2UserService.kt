@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service
 @Service
 class CustomOAuth2UserService(
     private val userRepository: UserRepository,
+    private val sequenceService: SequenceService,
 ) : DefaultOAuth2UserService() {
     override fun loadUser(userRequest: OAuth2UserRequest): OAuth2User {
         val oAuth2User = super.loadUser(userRequest)
@@ -23,8 +24,10 @@ class CustomOAuth2UserService(
         var user = userRepository.findByGoogleId(googleId)
 
         if (user == null) {
+            val userNo = sequenceService.getNextSequence("user_seq")
             user =
                 User(
+                    userNo = userNo,
                     googleId = googleId,
                     nickname = nickname,
                     email = email,
