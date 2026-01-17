@@ -1,7 +1,6 @@
 package com.woocurlee.bookview.config
 
-import com.woocurlee.bookview.domain.Status
-import com.woocurlee.bookview.repository.UserRepository
+import com.woocurlee.bookview.service.UserService
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -14,7 +13,7 @@ import org.springframework.stereotype.Component
 @Component
 class OAuth2SuccessHandler(
     private val jwtUtil: JwtUtil,
-    private val userRepository: UserRepository,
+    private val userService: UserService,
 ) : SimpleUrlAuthenticationSuccessHandler() {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -31,7 +30,7 @@ class OAuth2SuccessHandler(
         log.info("OAuth2 로그인 성공: googleId=$googleId, email=$email, name=$name")
 
         // DB에서 사용자 조회
-        val user = userRepository.findByGoogleIdAndStatus(googleId, Status.ACTIVE)
+        val user = userService.findByGoogleId(googleId)
         val nickname = user?.nickname ?: name
 
         // JWT 생성

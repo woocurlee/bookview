@@ -1,8 +1,7 @@
 package com.woocurlee.bookview.controller
 
-import com.woocurlee.bookview.domain.Status
 import com.woocurlee.bookview.domain.User
-import com.woocurlee.bookview.repository.UserRepository
+import com.woocurlee.bookview.service.UserService
 import org.springframework.ui.Model
 
 /**
@@ -11,14 +10,14 @@ import org.springframework.ui.Model
  */
 fun addUserToModel(
     principal: Any?,
-    userRepository: UserRepository,
+    userService: UserService,
     model: Model,
 ): User? {
     if (principal != null) {
         val attributes = principal as? Map<*, *>
         val googleId = attributes?.get("sub")?.toString()
         if (googleId != null) {
-            val user = userRepository.findByGoogleIdAndStatus(googleId, Status.ACTIVE)
+            val user = userService.findByGoogleId(googleId)
             model.addAttribute("user", user)
             return user
         }

@@ -1,8 +1,7 @@
 package com.woocurlee.bookview.controller
 
-import com.woocurlee.bookview.domain.Status
 import com.woocurlee.bookview.domain.toResponse
-import com.woocurlee.bookview.repository.UserRepository
+import com.woocurlee.bookview.service.UserService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.core.user.OAuth2User
@@ -13,14 +12,14 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/auth")
 class AuthController(
-    private val userRepository: UserRepository,
+    private val userService: UserService,
 ) {
     @GetMapping("/success")
     fun loginSuccess(
         @AuthenticationPrincipal oauth2User: OAuth2User,
     ): ResponseEntity<Map<String, Any?>> {
         val googleId = oauth2User.attributes["sub"].toString()
-        val user = googleId.let { userRepository.findByGoogleIdAndStatus(it, Status.ACTIVE) }
+        val user = userService.findByGoogleId(googleId)
 
         return ResponseEntity.ok(
             mapOf(
@@ -40,7 +39,7 @@ class AuthController(
 
         val googleId = oauth2User.attributes["sub"].toString()
         val user =
-            googleId.let { userRepository.findByGoogleIdAndStatus(it, Status.ACTIVE) }
+            userService.findByGoogleId(googleId)
                 ?: return ResponseEntity.status(404).body(mapOf("message" to "사용자를 찾을 수 없습니다"))
 
         return ResponseEntity.ok(user.toResponse())
