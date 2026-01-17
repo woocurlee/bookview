@@ -39,15 +39,6 @@ class ReviewController(
         )
     }
 
-    @GetMapping("/my")
-    fun getMyReviews(
-        @AuthenticationPrincipal principal: Any,
-    ): ResponseEntity<List<Review>> {
-        val attributes = principal as Map<*, *>
-        val googleId = attributes["sub"].toString()
-        return ResponseEntity.ok(reviewService.getReviewsByUserId(googleId))
-    }
-
     @PostMapping
     fun createReview(
         @RequestBody request: CreateReviewRequest,
