@@ -2,6 +2,7 @@ package com.woocurlee.bookview.service
 
 import com.woocurlee.bookview.common.SequenceNames
 import com.woocurlee.bookview.domain.Review
+import com.woocurlee.bookview.domain.Status
 import com.woocurlee.bookview.repository.ReviewRepository
 import java.time.LocalDateTime
 import org.springframework.data.domain.Page
@@ -13,7 +14,7 @@ class ReviewService(
     private val reviewRepository: ReviewRepository,
     private val sequenceService: SequenceService,
 ) {
-    fun getReviewsByUserId(userId: String): List<Review> = reviewRepository.findByUserId(userId)
+    fun getReviewsByUserId(userId: String): List<Review> = reviewRepository.findByUserIdAndStatus(userId, Status.ACTIVE)
 
     fun createReview(review: Review): Review {
         val reviewNo = sequenceService.getNextSequence(SequenceNames.REVIEW_SEQ)
@@ -21,9 +22,7 @@ class ReviewService(
         return reviewRepository.save(reviewWithNo)
     }
 
-    fun getAllReviews(): List<Review> = reviewRepository.findAll()
-
-    fun getReviews(pageable: Pageable): Page<Review> = reviewRepository.findAll(pageable)
+    fun getReviews(pageable: Pageable): Page<Review> = reviewRepository.findByStatus(Status.ACTIVE, pageable)
 
     fun updateReview(
         id: String,
@@ -32,6 +31,8 @@ class ReviewService(
         rating: Int,
     ): Review? {
         val review = reviewRepository.findById(id).orElse(null) ?: return null
+        if (review.status == Status.DELETED) return null
+
         val updated =
             review.copy(
                 title = title,
@@ -43,10 +44,14 @@ class ReviewService(
     }
 
     fun deleteReview(id: String) {
-        reviewRepository.deleteById(id)
+        val review = reviewRepository.findById(id).orElse(null) ?: return
+        val deleted =
+            review.copy(
+                status = Status.DELETED,
+                updatedAt = LocalDateTime.now(),
+            )
+        reviewRepository.save(deleted)
     }
 
-    fun getReviewById(id: String): Review? = reviewRepository.findById(id).orElse(null)
-
-    fun getReviewByReviewNo(reviewNo: Long): Review? = reviewRepository.findByReviewNo(reviewNo)
+    fun getReviewByReviewNo(reviewNo: Long): Review? = reviewRepository.findByReviewNoAndStatus(reviewNo, Status.ACTIVE)
 }
