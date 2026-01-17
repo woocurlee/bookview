@@ -20,6 +20,11 @@ class ViewController(
         model: Model,
         @AuthenticationPrincipal principal: Any?,
     ): String {
+        // 로그인하지 않은 유저는 랜딩 페이지로
+        if (principal == null || principal.toString() == "anonymousUser") {
+            return "landing"
+        }
+
         // 닉네임 미설정 체크
         val user = addUserToModel(principal, userService, model)
         if (user != null && !user.isNicknameSet) {

@@ -17,6 +17,7 @@ class SecurityConfig(
     private val authorizationRequestResolver: OAuth2AuthorizationRequestResolver,
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
     private val oAuth2SuccessHandler: OAuth2SuccessHandler,
+    private val customLogoutSuccessHandler: CustomLogoutSuccessHandler,
 ) {
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
@@ -55,7 +56,7 @@ class SecurityConfig(
                     }.successHandler(oAuth2SuccessHandler)
             }.logout { logout ->
                 logout
-                    .logoutSuccessUrl("/")
+                    .logoutSuccessHandler(customLogoutSuccessHandler)
                     .deleteCookies("jwt")
                     .permitAll()
             }.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
