@@ -37,7 +37,7 @@
                             수정하기
                         </a>
                         <button onclick="deleteReview()"
-                                th:data-review-id="${review.id}"
+                                th:attr="data-review-id=${review.id}"
                                 class="w-full text-left px-4 py-3 text-red-600 hover:bg-gray-100 hover:text-red-700 rounded-lg transition-colors">
                             삭제하기
                         </button>
@@ -93,7 +93,11 @@
         </div>
     </div>
 
-    <script>
+    <script src="/js/common.js"></script>
+    <script src="/js/review-detail.js"></script>
+    <script th:inline="javascript">
+        const reviewId = /*[[${review.id}]]*/ '';
+
         function toggleMenu() {
             const menu = document.getElementById('dropdownMenu');
             menu.classList.toggle('hidden');
@@ -108,52 +112,7 @@
                 menu.classList.add('hidden');
             }
         });
-
-        async function deleteReview() {
-            if (!confirm('정말 이 리뷰를 삭제하시겠습니까?')) {
-                return;
-            }
-
-            const reviewId = document.querySelector('[data-review-id]').getAttribute('data-review-id');
-
-            try {
-                const response = await fetch(`/api/reviews/${reviewId}`, {
-                    method: 'DELETE'
-                });
-
-                if (response.ok) {
-                    alert('리뷰가 삭제되었습니다!');
-                    window.location.href = '/';
-                } else {
-                    alert('리뷰 삭제에 실패했습니다.');
-                }
-            } catch (error) {
-                console.error('삭제 오류:', error);
-                alert('리뷰 삭제에 실패했습니다.');
-            }
-        }
-
-        function toggleMobileMenu() {
-            const menu = document.getElementById('mobileMenu');
-            const overlay = document.getElementById('mobileMenuOverlay');
-            if (menu.classList.contains('-translate-x-full')) {
-                menu.classList.remove('-translate-x-full');
-                menu.classList.add('translate-x-0');
-                overlay.classList.remove('hidden');
-            } else {
-                menu.classList.add('-translate-x-full');
-                menu.classList.remove('translate-x-0');
-                overlay.classList.add('hidden');
-            }
-        }
-
-        function openLogoutModal() {
-            document.getElementById('logoutModal').classList.remove('hidden');
-        }
-
-        function closeLogoutModal() {
-            document.getElementById('logoutModal').classList.add('hidden');
-        }
     </script>
+    <script th:replace="~{layout :: mobileMenuScript}"></script>
 </body>
 </html>

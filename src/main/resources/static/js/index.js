@@ -7,18 +7,21 @@ function goToWriteReview() {
 }
 
 function searchBooks() {
-    const query = document.getElementById('searchInput').value;
-    if (query.trim()) {
+    const query = document.getElementById('searchInput').value.trim();
+    if (query) {
         window.location.href = '/books?query=' + encodeURIComponent(query);
     }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('searchInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            searchBooks();
-        }
-    });
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchBooks();
+            }
+        });
+    }
 });
 
 // 무한 스크롤
@@ -26,14 +29,16 @@ async function loadMoreReviews() {
     if (isLoading || !hasMore) return;
 
     isLoading = true;
-    document.getElementById('loading').classList.remove('hidden');
+    const loadingEl = document.getElementById('loading');
+    if (loadingEl) {
+        loadingEl.classList.remove('hidden');
+    }
 
     // 현재 스크롤 위치 저장
     const scrollHeight = document.documentElement.scrollHeight;
 
     try {
-        const response = await fetch(`/api/reviews?page=${currentPage}&size=10`);
-        const data = await response.json();
+        const data = await API.get(`/api/reviews?page=${currentPage}&size=10`);
 
         if (data.reviews && data.reviews.length > 0) {
             const container = document.getElementById('reviewsContainer');
@@ -51,14 +56,17 @@ async function loadMoreReviews() {
             hasMore = false;
         }
 
-        if (!hasMore) {
-            document.getElementById('endMessage').classList.remove('hidden');
+        const endMessageEl = document.getElementById('endMessage');
+        if (!hasMore && endMessageEl) {
+            endMessageEl.classList.remove('hidden');
         }
     } catch (error) {
         console.error('리뷰 로딩 실패:', error);
     } finally {
         isLoading = false;
-        document.getElementById('loading').classList.add('hidden');
+        if (loadingEl) {
+            loadingEl.classList.add('hidden');
+        }
     }
 }
 
@@ -67,7 +75,7 @@ function createReviewCard(review) {
         ? `<img src="${review.bookThumbnail}" alt="책 표지" class="h-48 object-cover rounded-lg flex-shrink-0">`
         : '';
 
-    const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+    const stars = createStarRating(review.rating);
 
     const quote = review.quote
         ? `<div class="review-quote">"${review.quote}"</div>`
@@ -86,7 +94,7 @@ function createReviewCard(review) {
                     <div class="text-yellow-400 mb-2.5">${stars}</div>
                     ${quote}
                     <div class="text-gray-700 leading-relaxed mb-2.5 overflow-hidden line-clamp-3">${review.content}</div>
-                    <div class="text-xs text-gray-400">${new Date(review.createdAt).toLocaleString('ko-KR')}</div>
+                    <div class="text-xs text-gray-400">${formatDate(review.createdAt)}</div>
                 </div>
             </div>
         </a>

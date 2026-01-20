@@ -163,122 +163,18 @@
     </div>
 
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="/js/common.js"></script>
+    <script src="/js/edit-review.js"></script>
     <script th:inline="javascript">
         const reviewId = /*[[${review.id}]]*/ '';
         const reviewNo = /*[[${review.reviewNo}]]*/ 0;
         const initialRating = /*[[${review.rating}]]*/ 0;
         const initialContent = /*[[${review.content}]]*/ '';
 
-        // Quill 에디터 초기화
-        const quill = new Quill('#editor', {
-            theme: 'snow',
-            placeholder: '책을 읽고 느낀 점을 자유롭게 작성해주세요',
-            modules: {
-                toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    [{ 'align': [] }],
-                    ['blockquote', 'code-block'],
-                    ['clean']
-                ]
-            }
-        });
-
-        // 초기 컨텐츠 설정 (HTML로 설정)
-        if (initialContent) {
-            quill.root.innerHTML = initialContent;
-        }
-
-        // 별점 초기화
         document.addEventListener('DOMContentLoaded', function() {
-            updateStarDisplay(initialRating);
-
-            // 명언 글자수 카운터
-            const quoteTextarea = document.getElementById('quote');
-            const quoteCount = document.getElementById('quoteCount');
-
-            function updateQuoteCount() {
-                quoteCount.textContent = quoteTextarea.value.length;
-            }
-
-            updateQuoteCount();
-            quoteTextarea.addEventListener('input', updateQuoteCount);
-        });
-
-        function setRating(button) {
-            const rating = parseInt(button.dataset.rating);
-            document.getElementById('rating').value = rating;
-            updateStarDisplay(rating);
-        }
-
-        function updateStarDisplay(rating) {
-            const stars = document.querySelectorAll('.star-btn');
-            stars.forEach((star, index) => {
-                if (index < rating) {
-                    star.classList.remove('text-gray-300');
-                    star.classList.add('text-yellow-400');
-                } else {
-                    star.classList.remove('text-yellow-400');
-                    star.classList.add('text-gray-300');
-                }
-            });
-        }
-
-        document.getElementById('editReviewForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const title = document.getElementById('title').value.trim();
-            const rating = parseInt(document.getElementById('rating').value);
-            const quote = document.getElementById('quote').value.trim();
-            const content = quill.root.innerHTML.trim();
-
-            // 유효성 검사
-            if (!title || !quote) {
-                alert('모든 필수 항목을 입력해주세요.');
-                return;
-            }
-
-            if (!content || content === '<p><br></p>') {
-                alert('리뷰 내용을 입력해주세요.');
-                return;
-            }
-
-            if (!rating || rating < 1 || rating > 5) {
-                alert('별점을 선택해주세요.');
-                return;
-            }
-
-            if (quote.length < 5 || quote.length > 100) {
-                alert('인상 깊은 문장은 5~100자 사이로 입력해주세요.');
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/reviews/${reviewId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        title,
-                        rating,
-                        quote,
-                        content
-                    })
-                });
-
-                if (response.ok) {
-                    alert('리뷰가 수정되었습니다!');
-                    window.location.href = `/r/${reviewNo}`;
-                } else {
-                    alert('리뷰 수정에 실패했습니다.');
-                }
-            } catch (error) {
-                console.error('수정 오류:', error);
-                alert('리뷰 수정에 실패했습니다.');
-            }
+            initEditReviewPage(reviewId, reviewNo, initialRating, initialContent);
         });
     </script>
+    <script th:replace="~{layout :: mobileMenuScript}"></script>
 </body>
 </html>

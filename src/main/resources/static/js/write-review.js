@@ -1,3 +1,5 @@
+// 리뷰 작성 페이지 스크립트
+
 // Quill Editor 초기화
 const quill = new Quill('#editor', {
     theme: 'snow',
@@ -21,20 +23,18 @@ let currentBookQuery = '';
 let isLoadingBooks = false;
 let hasMoreBooks = true;
 
-document.addEventListener('DOMContentLoaded', function() {
-    // 명언 글자수 카운터
-    document.getElementById('quote').addEventListener('input', function() {
-        document.getElementById('quoteLength').textContent = this.value.length;
-    });
+// 명언 글자수 카운터 설정
+function setupQuoteCounter() {
+    const quoteInput = document.getElementById('quote');
+    const quoteLength = document.getElementById('quoteLength');
 
-    // 엔터키로 검색
-    document.getElementById('bookSearch').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            searchBooks();
-        }
+    quoteInput.addEventListener('input', function() {
+        quoteLength.textContent = this.value.length;
     });
+}
 
-    // 모달 스크롤 이벤트 - 무한 스크롤
+// 모달 스크롤 이벤트 설정 (무한 스크롤)
+function setupInfiniteScroll() {
     const bookModal = document.getElementById('bookModal');
     const modalContent = bookModal?.querySelector('.overflow-y-auto');
 
@@ -45,6 +45,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    setupQuoteCounter();
+    setupInfiniteScroll();
+
+    // 엔터키로 검색
+    document.getElementById('bookSearch').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchBooks();
+        }
+    });
+
+    // 모달 바깥 클릭 설정
+    Modal.setupOutsideClick('bookModal');
 });
 
 // 별점 설정
@@ -79,7 +94,7 @@ function updateStars(rating) {
 
 // 모달 열기
 function openBookModal() {
-    document.getElementById('bookModal').classList.remove('hidden');
+    Modal.open('bookModal');
     currentBookPage = 1;
     currentBookQuery = '';
     hasMoreBooks = true;
@@ -88,7 +103,7 @@ function openBookModal() {
 
 // 모달 닫기
 function closeBookModal() {
-    document.getElementById('bookModal').classList.add('hidden');
+    Modal.close('bookModal');
     // 검색어 및 결과 초기화
     document.getElementById('bookSearch').value = '';
     document.getElementById('bookList').innerHTML = '';
@@ -107,9 +122,9 @@ function handleModalClick(event) {
 
 // 책 검색 (무한 스크롤 지원)
 async function searchBooks(loadMore = false) {
-    const query = document.getElementById('bookSearch').value;
-    if (!query.trim()) {
-        alert('검색어를 입력하세요');
+    const query = document.getElementById('bookSearch').value.trim();
+    if (!query) {
+        Alert.error('검색어를 입력하세요');
         return;
     }
 
@@ -130,8 +145,7 @@ async function searchBooks(loadMore = false) {
     loading.classList.remove('hidden');
 
     try {
-        const response = await fetch(`/api/external/books/search?query=${encodeURIComponent(currentBookQuery)}&page=${currentBookPage}&size=10`);
-        const data = await response.json();
+        const data = await API.get(`/api/external/books/search?query=${encodeURIComponent(currentBookQuery)}&page=${currentBookPage}&size=10`);
 
         loading.classList.add('hidden');
         isLoadingBooks = false;
@@ -167,7 +181,6 @@ async function searchBooks(loadMore = false) {
             hasMoreBooks = false;
         }
     } catch (error) {
-        console.error('검색 오류:', error);
         loading.classList.add('hidden');
         isLoadingBooks = false;
         if (currentBookPage === 1) {
@@ -196,66 +209,56 @@ function selectBook(book) {
 
 // 리뷰 제출
 async function submitReview() {
-    const title = document.getElementById('reviewTitle').value;
-    const quote = document.getElementById('quote').value;
+    const title = document.getElementById('reviewTitle').value.trim();
+    const quote = document.getElementById('quote').value.trim();
     const content = quill.root.innerHTML;
 
-    if (!title.trim()) {
-        alert('리뷰 제목을 입력하세요');
+    // 유효성 검사
+    if (!title) {
+        Alert.error('리뷰 제목을 입력하세요');
         return;
     }
 
     if (!selectedBook) {
-        alert('책을 선택하세요');
+        Alert.error('책을 선택하세요');
         return;
     }
 
-    if (selectedRating === 0) {
-        alert('별점을 선택하세요');
+    if (!Validator.rating(selectedRating)) {
+        Alert.error('별점을 선택하세요');
         return;
     }
 
-    if (!quote.trim()) {
-        alert('명언을 입력하세요');
+    if (!quote) {
+        Alert.error('명언을 입력하세요');
         return;
     }
 
-    if (quote.trim().length < 5 || quote.trim().length > 100) {
-        alert('명언은 5~100자로 입력하세요');
+    if (!Validator.textLength(quote, 5, 100)) {
+        Alert.error('명언은 5~100자로 입력하세요');
         return;
     }
 
-    if (!content.trim() || content === '<p><br></p>') {
-        alert('리뷰 내용을 입력하세요');
+    if (!Validator.quillContent(content)) {
+        Alert.error('리뷰 내용을 입력하세요');
         return;
     }
 
     try {
-        const response = await fetch('/api/reviews', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                title: title,
-                bookTitle: selectedBook.title,
-                bookAuthor: selectedBook.author,
-                bookIsbn: selectedBook.isbn,
-                bookThumbnail: selectedBook.thumbnail,
-                rating: selectedRating,
-                quote: quote,
-                content: content
-            })
+        await API.post('/api/reviews', {
+            title: title,
+            bookTitle: selectedBook.title,
+            bookAuthor: selectedBook.author,
+            bookIsbn: selectedBook.isbn,
+            bookThumbnail: selectedBook.thumbnail,
+            rating: selectedRating,
+            quote: quote,
+            content: content
         });
 
-        if (response.ok) {
-            alert('리뷰가 등록되었습니다!');
-            window.location.href = '/';
-        } else {
-            alert('리뷰 등록에 실패했습니다.');
-        }
+        Alert.success('리뷰가 등록되었습니다!');
+        window.location.href = '/';
     } catch (error) {
-        console.error('제출 오류:', error);
-        alert('리뷰 등록에 실패했습니다.');
+        Alert.error('리뷰 등록에 실패했습니다.');
     }
 }
