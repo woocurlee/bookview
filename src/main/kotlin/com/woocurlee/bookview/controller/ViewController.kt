@@ -130,4 +130,32 @@ class ViewController(
 
         return "review-detail"
     }
+
+    @GetMapping("/r/{reviewNo}/edit")
+    fun editReview(
+        @org.springframework.web.bind.annotation.PathVariable reviewNo: Long,
+        model: Model,
+        @AuthenticationPrincipal principal: Any?,
+    ): String {
+        if (principal == null || principal.toString() == "anonymousUser") {
+            return "redirect:/oauth2/authorization/google"
+        }
+
+        val user = addUserToModel(principal, userService, model)
+        if (user != null && !user.isNicknameSet) {
+            return "redirect:/setup-nickname"
+        }
+
+        val review = reviewService.getReviewByReviewNo(reviewNo) ?: return "redirect:/"
+
+        // 본인 리뷰가 아니면 상세 페이지로
+        val attributes = principal as? Map<*, *>
+        val googleId = attributes?.get("sub")?.toString()
+        if (googleId != review.userId) {
+            return "redirect:/r/$reviewNo"
+        }
+
+        model.addAttribute("review", review)
+        return "edit-review"
+    }
 }

@@ -32,6 +32,10 @@
                     </button>
                     <!-- 드롭다운 메뉴 -->
                     <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                        <a th:href="@{/r/{reviewNo}/edit(reviewNo=${review.reviewNo})}"
+                           class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-t-lg transition-colors">
+                            수정하기
+                        </a>
                         <button onclick="deleteReview()"
                                 th:data-review-id="${review.id}"
                                 class="w-full text-left px-4 py-3 text-red-600 hover:bg-gray-100 hover:text-red-700 rounded-lg transition-colors">
