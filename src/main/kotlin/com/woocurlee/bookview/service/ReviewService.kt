@@ -4,6 +4,7 @@ import com.woocurlee.bookview.common.SequenceNames
 import com.woocurlee.bookview.domain.Review
 import com.woocurlee.bookview.domain.Status
 import com.woocurlee.bookview.repository.ReviewRepository
+import com.woocurlee.bookview.util.HtmlSanitizer
 import java.time.LocalDateTime
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -18,8 +19,17 @@ class ReviewService(
 
     fun createReview(review: Review): Review {
         val reviewNo = sequenceService.getNextSequence(SequenceNames.REVIEW_SEQ)
-        val reviewWithNo = review.copy(reviewNo = reviewNo)
-        return reviewRepository.save(reviewWithNo)
+
+        // XSS 방지: HTML 새니타이즈
+        val sanitizedReview =
+            review.copy(
+                reviewNo = reviewNo,
+                title = HtmlSanitizer.toPlainText(review.title),
+                content = HtmlSanitizer.sanitize(review.content),
+                quote = HtmlSanitizer.toPlainText(review.quote),
+            )
+
+        return reviewRepository.save(sanitizedReview)
     }
 
     fun getReviews(pageable: Pageable): Page<Review> = reviewRepository.findByStatus(Status.ACTIVE, pageable)
@@ -29,15 +39,18 @@ class ReviewService(
         title: String,
         content: String,
         rating: Int,
+        quote: String,
     ): Review? {
         val review = reviewRepository.findById(id).orElse(null) ?: return null
         if (review.status == Status.DELETED) return null
 
+        // XSS 방지: HTML 새니타이즈
         val updated =
             review.copy(
-                title = title,
-                content = content,
+                title = HtmlSanitizer.toPlainText(title),
+                content = HtmlSanitizer.sanitize(content),
                 rating = rating,
+                quote = HtmlSanitizer.toPlainText(quote),
                 updatedAt = LocalDateTime.now(),
             )
         return reviewRepository.save(updated)

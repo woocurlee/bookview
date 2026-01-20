@@ -4,4 +4,5 @@ data class UpdateReviewRequest(
     val title: String,
     val content: String,
     val rating: Int,
+    val quote: String,
 )

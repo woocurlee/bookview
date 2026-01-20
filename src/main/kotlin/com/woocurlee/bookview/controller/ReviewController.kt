@@ -67,7 +67,7 @@ class ReviewController(
         @RequestBody request: UpdateReviewRequest,
     ): ResponseEntity<Review> {
         val updated =
-            reviewService.updateReview(id, request.title, request.content, request.rating)
+            reviewService.updateReview(id, request.title, request.content, request.rating, request.quote)
                 ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(updated)
     }

@@ -32,6 +32,9 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("io.netty:netty-resolver-dns-native-macos:4.1.100.Final:osx-aarch_64")
 
+    // HTML Sanitizer (XSS 방지)
+    implementation("org.jsoup:jsoup:1.17.2")
+
     // JWT
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
