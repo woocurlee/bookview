@@ -39,7 +39,6 @@ class CustomOAuth2UserService(
         } else {
             user =
                 user.copy(
-                    nickname = nickname,
                     email = email,
                     profileImageUrl = profileImageUrl,
                     lastLoginAt = LocalDateTime.now(),
