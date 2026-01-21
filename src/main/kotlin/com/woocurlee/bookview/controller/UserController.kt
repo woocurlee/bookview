@@ -25,8 +25,12 @@ class UserController(
 
         try {
             val updatedUser =
-                userService.updateNickname(googleId, request.nickname)
-                    ?: return ResponseEntity.notFound().build()
+                userService.updateNickname(
+                    googleId,
+                    request.nickname,
+                    request.agreedToTerms,
+                    request.termsVersion,
+                ) ?: return ResponseEntity.notFound().build()
 
             return ResponseEntity.ok(updatedUser.toResponse())
         } catch (e: IllegalArgumentException) {

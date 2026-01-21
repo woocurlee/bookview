@@ -14,7 +14,15 @@ class UserService(
     fun updateNickname(
         googleId: String,
         nickname: String,
+        agreedToTerms: Boolean = false,
+        termsVersion: String = "1.0",
     ): User? {
+        // 약관 동의 확인 (닉네임 미설정 시에만)
+        val user = findByGoogleId(googleId) ?: return null
+        if (!user.isNicknameSet && !agreedToTerms) {
+            throw IllegalArgumentException("약관에 동의해야 합니다.")
+        }
+
         // 닉네임 길이 검증 (1~30자)
         if (nickname.length !in 1..30) {
             throw IllegalArgumentException("닉네임은 1~30자 사이로 입력해주세요.")
@@ -35,14 +43,18 @@ class UserService(
             throw IllegalArgumentException("마침표(..)를 연속으로 사용할 수 없습니다.")
         }
 
-        val user = findByGoogleId(googleId) ?: return null
-
         // 닉네임 중복 체크 (본인 제외)
         if (user.nickname != nickname && userRepository.existsByNicknameAndStatus(nickname, Status.ACTIVE)) {
             throw IllegalArgumentException("이미 사용 중인 닉네임입니다.")
         }
 
-        val updated = user.copy(nickname = nickname, isNicknameSet = true)
+        val updated =
+            user.copy(
+                nickname = nickname,
+                isNicknameSet = true,
+                agreedToTermsAt = if (!user.isNicknameSet) java.time.LocalDateTime.now() else user.agreedToTermsAt,
+                termsVersion = if (!user.isNicknameSet) termsVersion else user.termsVersion,
+            )
         return userRepository.save(updated)
     }
 

@@ -18,4 +18,7 @@ data class User(
     val status: Status = Status.ACTIVE, // 유저 상태
     val createdAt: LocalDateTime = LocalDateTime.now(),
     val lastLoginAt: LocalDateTime = LocalDateTime.now(),
+    // 약관 동의
+    val agreedToTermsAt: LocalDateTime? = null,
+    val termsVersion: String? = null,
 )
