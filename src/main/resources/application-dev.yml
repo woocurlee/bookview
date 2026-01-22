@@ -1,0 +1,31 @@
+spring:
+  mongodb:
+    uri: mongodb://localhost:27017
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - profile
+              - email
+
+server:
+  port: 8080
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        secure: false # HTTP 환경
+        same-site: lax
+
+logging:
+  level:
+    root: INFO
+    com.woocurlee.bookview: DEBUG
+    org.springframework.security: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
