@@ -1,6 +1,7 @@
 spring:
   mongodb:
     uri: ${MONGODB_URI}
+    database: ${MONGODB_DATABASE}
 
   security:
     oauth2:
@@ -40,3 +41,11 @@ logging:
       max-history: 30
   pattern:
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000
+
+kakao:
+  api:
+    key: ${KAKAO_API_KEY}
