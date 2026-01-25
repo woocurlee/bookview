@@ -1,7 +1,7 @@
 spring:
   mongodb:
     uri: ${MONGODB_URI}
-    database: ${MONGODB_DATABASE}
+    database: bookview
 
   security:
     oauth2:
