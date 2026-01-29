@@ -35,7 +35,7 @@ logging:
     root: INFO
     com.woocurlee.bookview: INFO
   file:
-    name: /var/log/bookview/application.log
+    name: /var/log/bookview/app.log
   logback:
     rollingpolicy:
       max-file-size: 10MB
