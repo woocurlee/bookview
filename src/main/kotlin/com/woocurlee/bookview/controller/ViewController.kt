@@ -158,4 +158,10 @@ class ViewController(
         model.addAttribute("review", review)
         return "edit-review"
     }
+
+    @GetMapping("/privacy-policy")
+    fun privacyPolicy(): String = "redirect:/privacy-policy.html"
+
+    @GetMapping("/terms-of-service")
+    fun termsOfService(): String = "redirect:/terms-of-service.html"
 }
