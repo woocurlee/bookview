@@ -46,6 +46,8 @@ class SecurityConfig(
                     .permitAll()
                     .requestMatchers("/api/**")
                     .authenticated()
+                    .requestMatchers("/favicon.ico", "/apple-touch-icon.png", "/favicon-*.png")
+                    .permitAll()
                     .anyRequest()
                     .permitAll()
             }.oauth2Login { oauth2 ->
