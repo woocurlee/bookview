@@ -4,11 +4,11 @@
 const quill = new Quill('#editor', {
     theme: 'snow',
     placeholder: '책을 읽으며 느낀 점을 자유롭게 작성해보세요...',
+    formats: ['header', 'bold', 'italic', 'underline', 'strike', 'blockquote', 'code-block', 'link'],
     modules: {
         toolbar: [
             [{ 'header': [1, 2, 3, false] }],
             ['bold', 'italic', 'underline', 'strike'],
-            [{ 'list': 'ordered'}, { 'list': 'bullet' }],
             ['blockquote', 'code-block'],
             ['link'],
             ['clean']
