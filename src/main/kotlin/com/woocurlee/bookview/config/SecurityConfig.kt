@@ -18,6 +18,7 @@ class SecurityConfig(
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
     private val oAuth2SuccessHandler: OAuth2SuccessHandler,
     private val customLogoutSuccessHandler: CustomLogoutSuccessHandler,
+    private val cookieAuthorizationRequestRepository: CookieOAuth2AuthorizationRequestRepository,
 ) {
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
@@ -50,7 +51,9 @@ class SecurityConfig(
             }.oauth2Login { oauth2 ->
                 oauth2
                     .authorizationEndpoint { authorization ->
-                        authorization.authorizationRequestResolver(authorizationRequestResolver)
+                        authorization
+                            .authorizationRequestResolver(authorizationRequestResolver)
+                            .authorizationRequestRepository(cookieAuthorizationRequestRepository)
                     }.userInfoEndpoint { userInfo ->
                         userInfo.userService(customOAuth2UserService)
                     }.successHandler(oAuth2SuccessHandler)

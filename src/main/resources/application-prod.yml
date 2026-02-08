@@ -26,7 +26,7 @@ server:
       cookie:
         http-only: true
         secure: true # HTTPS 필수
-        same-site: strict
+        same-site: lax
   compression:
     enabled: true
 
