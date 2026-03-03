@@ -24,7 +24,7 @@
                         <a href="/write-review" class="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-lg hover:from-emerald-600 hover:to-green-600 transition-all shadow-md hover:shadow-lg font-semibold">
                             ✏️ 리뷰 작성
                         </a>
-                        <a href="/my-page" class="flex items-center gap-3 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer">
+                        <a th:href="@{/u/{nickname}(nickname=${user.nickname})}" class="flex items-center gap-3 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer">
                             <img src="/images/default-avatar.svg" alt="프로필" class="w-9 h-9 rounded-full ring-2 ring-emerald-200">
                             <span th:text="${user.nickname}" class="font-semibold text-gray-700">사용자</span>
                         </a>
@@ -57,7 +57,7 @@
                     <img src="/images/default-avatar.svg" alt="프로필" class="w-12 h-12 rounded-full">
                     <span th:text="${user.nickname}" class="font-semibold text-lg">사용자</span>
                 </div>
-                <a href="/my-page" class="block py-4 px-4 text-gray-700 hover:bg-emerald-50 rounded-md mt-2">👤 마이페이지</a>
+                <a th:href="@{/u/{nickname}(nickname=${user.nickname})}" class="block py-4 px-4 text-gray-700 hover:bg-emerald-50 rounded-md mt-2">👤 마이페이지</a>
                 <a href="/write-review" class="block py-4 px-4 text-gray-700 hover:bg-emerald-50 rounded-md">✏️ 글쓰기</a>
             </div>
             <div th:if="${user == null}">
