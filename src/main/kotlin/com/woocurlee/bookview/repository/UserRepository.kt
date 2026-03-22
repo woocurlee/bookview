@@ -14,4 +14,9 @@ interface UserRepository : MongoRepository<User, String> {
         nickname: String,
         status: Status,
     ): Boolean
+
+    fun findByNicknameAndStatus(
+        nickname: String,
+        status: Status,
+    ): User?
 }

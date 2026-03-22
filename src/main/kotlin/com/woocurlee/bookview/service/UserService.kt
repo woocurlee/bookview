@@ -11,6 +11,8 @@ class UserService(
 ) {
     fun findByGoogleId(googleId: String): User? = userRepository.findByGoogleIdAndStatus(googleId, Status.ACTIVE)
 
+    fun findByNickname(nickname: String): User? = userRepository.findByNicknameAndStatus(nickname, Status.ACTIVE)
+
     fun updateNickname(
         googleId: String,
         nickname: String,

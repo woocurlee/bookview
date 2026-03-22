@@ -33,6 +33,7 @@ class SecurityConfig(
                         "/books",
                         "/write-review",
                         "/my-page",
+                        "/u/**",
                         "/r/**",
                         "/setup-nickname",
                         "/login/**",

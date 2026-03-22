@@ -10,18 +10,18 @@ function closeEditModal() {
 
 async function saveProfile() {
     const nickname = document.getElementById('editNickname').value.trim();
-    
+
     // 닉네임 검증
     const validation = Validator.nickname(nickname);
     if (!validation.valid) {
         Alert.error(validation.errors[0]);
         return;
     }
-    
+
     try {
         await API.put('/api/users/profile', { nickname });
         Alert.success('프로필이 수정되었습니다!');
-        location.reload();
+        window.location.href = '/u/' + nickname;
     } catch (error) {
         Alert.error(error.message || '프로필 수정에 실패했습니다.');
     }

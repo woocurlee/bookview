@@ -79,35 +79,43 @@ class ViewController(
 
     @GetMapping("/my-page")
     fun myPage(
-        model: Model,
         @AuthenticationPrincipal principal: Any?,
     ): String {
         if (principal == null) {
             return "redirect:/oauth2/authorization/google"
         }
-
         val attributes = principal as? Map<*, *>
-        val googleId = attributes?.get("sub")?.toString()
-        if (googleId != null) {
-            val user = userService.findByGoogleId(googleId)
+        val googleId = attributes?.get("sub")?.toString() ?: return "redirect:/oauth2/authorization/google"
+        val user = userService.findByGoogleId(googleId) ?: return "redirect:/oauth2/authorization/google"
+        if (!user.isNicknameSet) return "redirect:/setup-nickname"
+        return "redirect:/u/${user.nickname}"
+    }
 
-            // 닉네임 미설정 체크
-            if (user != null && !user.isNicknameSet) {
-                return "redirect:/setup-nickname"
-            }
+    @GetMapping("/u/{nickname}")
+    fun userPage(
+        @org.springframework.web.bind.annotation.PathVariable nickname: String,
+        model: Model,
+        @AuthenticationPrincipal principal: Any?,
+    ): String {
+        val profileUser = userService.findByNickname(nickname) ?: return "error/404"
 
-            model.addAttribute("user", user)
-
-            // 내가 쓴 리뷰 가져오기 (최신순 정렬)
-            val myReviews = reviewService.getReviewsByUserId(googleId).sortedByDescending { it.createdAt }
-            model.addAttribute("myReviews", myReviews)
-
-            // 평균 별점 계산
-            val avgRating = if (myReviews.isEmpty()) 0.0 else myReviews.map { it.rating }.average()
-            model.addAttribute("avgRating", String.format("%.1f", avgRating))
+        // 현재 로그인 유저 확인
+        val currentUser = addUserToModel(principal, userService, model)
+        if (currentUser != null && !currentUser.isNicknameSet) {
+            return "redirect:/setup-nickname"
         }
+        val isOwner = currentUser?.googleId == profileUser.googleId
 
-        return "my-page"
+        model.addAttribute("profileUser", profileUser)
+        model.addAttribute("isOwner", isOwner)
+
+        val reviews = reviewService.getReviewsByUserId(profileUser.googleId).sortedByDescending { it.createdAt }
+        model.addAttribute("reviews", reviews)
+
+        val avgRating = if (reviews.isEmpty()) 0.0 else reviews.map { it.rating }.average()
+        model.addAttribute("avgRating", String.format("%.1f", avgRating))
+
+        return "user-page"
     }
 
     @GetMapping("/r/{reviewNo}")
