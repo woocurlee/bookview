@@ -126,6 +126,9 @@ class ViewController(
         val avgRating = if (reviews.isEmpty()) 0.0 else reviews.map { it.rating }.average()
         model.addAttribute("avgRating", String.format("%.1f", avgRating))
 
+        val totalLikes = reviews.sumOf { it.likeCount }
+        model.addAttribute("totalLikes", totalLikes)
+
         // 좋아요 여부
         if (currentUser != null) {
             val reviewIds = reviews.mapNotNull { it.id }

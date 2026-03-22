@@ -69,12 +69,28 @@
                     </div>
 
                     <!-- 작성자 및 날짜 -->
-                    <div class="flex items-center gap-3 mb-4 pb-4 border-b border-gray-200">
-                        <img src="/images/default-avatar.svg" alt="프로필" class="w-10 h-10 rounded-full">
-                        <div>
-                            <div class="font-semibold text-gray-800" th:text="${author?.nickname}">작성자</div>
-                            <div class="text-xs text-gray-400" th:text="${#temporals.format(review.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-24 10:00</div>
-                        </div>
+                    <div class="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
+                        <a th:href="@{/u/{nickname}(nickname=${author?.nickname})}" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                            <img src="/images/default-avatar.svg" alt="프로필" class="w-10 h-10 rounded-full">
+                            <div>
+                                <div class="font-semibold text-gray-800" th:text="${author?.nickname}">작성자</div>
+                                <div class="text-xs text-gray-400" th:text="${#temporals.format(review.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-24 10:00</div>
+                            </div>
+                        </a>
+                        <!-- 좋아요 버튼 -->
+                        <button id="likeButton"
+                                th:data-review-no="${review.reviewNo}"
+                                th:data-liked="${hasLiked}"
+                                th:data-is-author="${user != null && user.googleId == review.userId}"
+                                th:data-logged-in="${user != null}"
+                                th:classappend="${hasLiked} ? 'text-red-500' : 'text-gray-400'"
+                                class="flex items-center gap-1.5 text-base transition-colors hover:text-red-500"
+                                onclick="toggleLike(this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" th:classappend="${hasLiked} ? 'fill-current' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                            <span id="likeCount" th:text="${review.likeCount}">0</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -91,22 +107,6 @@
                 </div>
             </div>
 
-            <!-- 좋아요 버튼 -->
-            <div class="mt-8 pt-6 border-t border-gray-200">
-                <button id="likeButton"
-                        th:data-review-no="${review.reviewNo}"
-                        th:data-liked="${hasLiked}"
-                        th:data-is-author="${user != null && user.googleId == review.userId}"
-                        th:data-logged-in="${user != null}"
-                        th:classappend="${hasLiked} ? 'text-red-500' : 'text-gray-400'"
-                        class="flex items-center gap-2 text-lg transition-colors hover:text-red-500"
-                        onclick="toggleLike(this)">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" th:classappend="${hasLiked} ? 'fill-current' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                    <span id="likeCount" th:text="${review.likeCount}">0</span>
-                </button>
-            </div>
         </div>
     </div>
 
