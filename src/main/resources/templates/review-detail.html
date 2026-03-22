@@ -99,22 +99,6 @@
                 </div>
             </div>
 
-            <!-- 좋아요 버튼 -->
-            <div class="mt-8 pt-6 border-t border-gray-200">
-                <button id="likeButton"
-                        th:data-review-no="${review.reviewNo}"
-                        th:data-liked="${hasLiked}"
-                        th:data-is-author="${user != null && user.googleId == review.userId}"
-                        th:data-logged-in="${user != null}"
-                        th:classappend="${hasLiked} ? 'text-red-500' : 'text-gray-400'"
-                        class="flex items-center gap-2 text-lg transition-colors hover:text-red-500"
-                        onclick="toggleLike(this)">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" th:classappend="${hasLiked} ? 'fill-current' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                    <span id="likeCount" th:text="${review.likeCount}">0</span>
-                </button>
-            </div>
         </div>
     </div>
 
