@@ -1,106 +1,104 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{layout :: head('리뷰 상세 - BookView')}"></head>
-<style>
-    .review-quote {
-        background: #f0f0f0;
-        border-left: 4px solid #10b981;
-        padding: 12px 16px;
-        margin-bottom: 10px;
-        font-style: italic;
-        color: #555;
-        border-radius: 4px;
-    }
-</style>
 <body class="bg-gradient-to-br from-emerald-500 to-green-600 min-h-screen">
     <header th:replace="~{layout :: header}"></header>
 
-    <div class="max-w-4xl mx-auto px-5 py-5">
-        <div class="bg-white rounded-2xl p-6 md:p-10 shadow-lg">
-            <!-- 상단 헤더 -->
-            <div class="flex justify-between items-center mb-6">
-                <button onclick="history.back()" class="text-gray-600 hover:text-emerald-600 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                </button>
+    <div class="max-w-3xl mx-auto px-4 py-5">
 
-                <!-- 더보기 버튼 (본인만) -->
-                <div th:if="${user != null && user.googleId == review.userId}" class="relative">
-                    <button onclick="toggleMenu()" class="text-gray-600 hover:text-gray-800 text-2xl px-2">
-                        ⋯
+        <!-- 상단 네비게이션 -->
+        <div class="flex justify-between items-center mb-4">
+            <button onclick="history.back()" class="text-white/80 hover:text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+            </button>
+
+            <!-- 더보기 버튼 (본인만) -->
+            <div th:if="${user != null && user.googleId == review.userId}" class="relative">
+                <button onclick="toggleMenu()" class="text-white/80 hover:text-white text-2xl px-2">
+                    ⋯
+                </button>
+                <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+                    <a th:href="@{/r/{reviewNo}/edit(reviewNo=${review.reviewNo})}"
+                       class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-t-lg transition-colors">
+                        수정하기
+                    </a>
+                    <button onclick="deleteReview()"
+                            th:attr="data-review-id=${review.id}"
+                            class="w-full text-left px-4 py-3 text-red-600 hover:bg-gray-100 hover:text-red-700 rounded-b-lg transition-colors">
+                        삭제하기
                     </button>
-                    <!-- 드롭다운 메뉴 -->
-                    <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                        <a th:href="@{/r/{reviewNo}/edit(reviewNo=${review.reviewNo})}"
-                           class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-t-lg transition-colors">
-                            수정하기
-                        </a>
-                        <button onclick="deleteReview()"
-                                th:attr="data-review-id=${review.id}"
-                                class="w-full text-left px-4 py-3 text-red-600 hover:bg-gray-100 hover:text-red-700 rounded-lg transition-colors">
-                            삭제하기
-                        </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 메인 카드 -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+
+            <!-- 책 정보 히어로 -->
+            <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-6 md:p-8">
+                <div class="flex gap-5 items-start">
+                    <img th:src="${review.bookThumbnail}"
+                         alt="책 표지"
+                         th:if="${review.bookThumbnail != null && !review.bookThumbnail.isEmpty()}"
+                         class="w-28 h-40 md:w-32 md:h-44 object-cover rounded-lg shadow-2xl flex-shrink-0 ring-1 ring-white/10">
+                    <div class="flex flex-col justify-center gap-2 min-w-0 pt-1">
+                        <div class="text-lg md:text-xl font-bold text-white leading-snug" th:text="${review.bookTitle}">책 제목</div>
+                        <div class="text-sm text-gray-300" th:text="${review.bookAuthor}">저자</div>
+                        <div class="text-yellow-400 text-lg mt-1">
+                            <span th:each="i : ${#numbers.sequence(1, review.rating)}">★</span><span class="text-gray-600" th:if="${review.rating < 5}" th:each="i : ${#numbers.sequence(review.rating + 1, 5)}">★</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 작성자 프로필 -->
-            <a th:href="@{/u/{nickname}(nickname=${author?.nickname})}"
-               class="flex items-center gap-3 mb-6 p-3 -mx-3 rounded-xl hover:bg-gray-50 transition-colors">
-                <img src="/images/default-avatar.svg" alt="프로필" class="w-11 h-11 rounded-full ring-2 ring-emerald-100">
-                <div class="flex-1">
-                    <div class="font-semibold text-gray-800" th:text="${author?.nickname}">작성자</div>
-                    <div class="text-xs text-gray-400" th:text="${#temporals.format(review.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-24 10:00</div>
+            <!-- 콘텐츠 영역 -->
+            <div class="p-6 md:p-8">
+
+                <!-- 작성자 + 좋아요 -->
+                <div class="flex items-center justify-between mb-6">
+                    <a th:href="@{/u/{nickname}(nickname=${author?.nickname})}"
+                       class="flex items-center gap-3 hover:opacity-75 transition-opacity">
+                        <img src="/images/default-avatar.svg" alt="프로필" class="w-10 h-10 rounded-full ring-2 ring-emerald-100">
+                        <div>
+                            <div class="font-semibold text-gray-800 text-sm" th:text="${author?.nickname}">작성자</div>
+                            <div class="text-xs text-gray-400" th:text="${#temporals.format(review.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-24 10:00</div>
+                        </div>
+                    </a>
+                    <button id="likeButton"
+                            th:data-review-no="${review.reviewNo}"
+                            th:data-liked="${hasLiked}"
+                            th:data-is-author="${user != null && user.googleId == review.userId}"
+                            th:data-logged-in="${user != null}"
+                            th:classappend="${hasLiked} ? 'text-red-500' : 'text-gray-300'"
+                            class="flex items-center gap-1.5 text-sm transition-all hover:text-red-500 hover:scale-105"
+                            onclick="toggleLike(this)">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" th:classappend="${hasLiked} ? 'fill-current' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        <span id="likeCount" th:text="${review.likeCount}">0</span>
+                    </button>
                 </div>
-            </a>
 
-            <!-- 리뷰 제목 -->
-            <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6" th:text="${review.title}">리뷰 제목</h1>
+                <!-- 리뷰 제목 -->
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-5 leading-snug" th:text="${review.title}">리뷰 제목</h1>
 
-            <!-- 책 정보 -->
-            <div class="flex gap-5 mb-6 p-4 bg-gray-50 rounded-xl">
-                <img th:src="${review.bookThumbnail}"
-                     alt="책 표지"
-                     th:if="${review.bookThumbnail != null && !review.bookThumbnail.isEmpty()}"
-                     class="w-24 h-36 object-cover rounded-lg shadow-sm flex-shrink-0">
-                <div class="flex flex-col justify-center gap-1.5">
-                    <div class="text-lg font-bold text-gray-800" th:text="${review.bookTitle}">책 제목</div>
-                    <div class="text-sm text-gray-500" th:text="${review.bookAuthor}">저자</div>
-                    <div class="text-yellow-400 text-xl mt-1">
-                        <span th:each="i : ${#numbers.sequence(1, review.rating)}">★</span><span th:if="${review.rating < 5}" th:each="i : ${#numbers.sequence(review.rating + 1, 5)}">☆</span>
+                <!-- 명언 -->
+                <div th:if="${review.quote != null && !review.quote.isEmpty()}"
+                     class="relative mb-6 pl-5 py-3 border-l-4 border-emerald-400 bg-emerald-50/50 rounded-r-lg">
+                    <span class="text-emerald-300 text-4xl font-serif absolute -top-2 left-2 leading-none">"</span>
+                    <p class="text-gray-600 italic text-base ml-3" th:text="${review.quote}">명언</p>
+                </div>
+
+                <!-- 리뷰 내용 -->
+                <div class="prose prose-gray max-w-none">
+                    <div class="text-gray-700 leading-relaxed text-base md:text-lg" th:utext="${review.content}">
+                        리뷰 내용...
                     </div>
                 </div>
             </div>
 
-            <!-- 명언 -->
-            <div class="review-quote mb-6" th:if="${review.quote != null && !review.quote.isEmpty()}">
-                "<span th:text="${review.quote}"></span>"
-            </div>
-
-            <!-- 리뷰 내용 -->
-            <div class="prose max-w-none">
-                <div class="text-gray-700 leading-relaxed text-base md:text-lg" th:utext="${review.content}">
-                    리뷰 내용...
-                </div>
-            </div>
-
-            <!-- 좋아요 버튼 -->
-            <div class="mt-8 pt-6 border-t border-gray-200">
-                <button id="likeButton"
-                        th:data-review-no="${review.reviewNo}"
-                        th:data-liked="${hasLiked}"
-                        th:data-is-author="${user != null && user.googleId == review.userId}"
-                        th:data-logged-in="${user != null}"
-                        th:classappend="${hasLiked} ? 'text-red-500' : 'text-gray-400'"
-                        class="flex items-center gap-2 text-lg transition-colors hover:text-red-500"
-                        onclick="toggleLike(this)">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" th:classappend="${hasLiked} ? 'fill-current' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                    <span id="likeCount" th:text="${review.likeCount}">0</span>
-                </button>
-            </div>
         </div>
     </div>
 
