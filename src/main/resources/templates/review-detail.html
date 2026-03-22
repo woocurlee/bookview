@@ -45,36 +45,30 @@
                 </div>
             </div>
 
-            <div class="flex flex-col md:flex-row gap-6 mb-4 lg:mb-8">
-                <!-- 책 표지 -->
+            <!-- 작성자 프로필 -->
+            <a th:href="@{/u/{nickname}(nickname=${author?.nickname})}"
+               class="flex items-center gap-3 mb-6 p-3 -mx-3 rounded-xl hover:bg-gray-50 transition-colors">
+                <img src="/images/default-avatar.svg" alt="프로필" class="w-11 h-11 rounded-full ring-2 ring-emerald-100">
+                <div class="flex-1">
+                    <div class="font-semibold text-gray-800" th:text="${author?.nickname}">작성자</div>
+                    <div class="text-xs text-gray-400" th:text="${#temporals.format(review.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-24 10:00</div>
+                </div>
+            </a>
+
+            <!-- 리뷰 제목 -->
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6" th:text="${review.title}">리뷰 제목</h1>
+
+            <!-- 책 정보 -->
+            <div class="flex gap-5 mb-6 p-4 bg-gray-50 rounded-xl">
                 <img th:src="${review.bookThumbnail}"
                      alt="책 표지"
                      th:if="${review.bookThumbnail != null && !review.bookThumbnail.isEmpty()}"
-                     class="w-48 h-64 object-cover rounded-lg shadow-md mx-auto md:mx-0 flex-shrink-0">
-
-                <div class="flex-1">
-                    <!-- 리뷰 제목 -->
-                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4" th:text="${review.title}">리뷰 제목</h1>
-
-                    <!-- 책 정보 -->
-                    <div class="text-gray-600 mb-4 flex items-center lg:gap-2 gap-1">
-                        <span class="text-lg font-semibold" th:text="${review.bookTitle}">책 제목</span>
-                        <span>-</span>
-                        <span th:text="${review.bookAuthor}">저자</span>
-                    </div>
-
-                    <!-- 별점 -->
-                    <div class="text-yellow-400 text-2xl mb-4">
+                     class="w-24 h-36 object-cover rounded-lg shadow-sm flex-shrink-0">
+                <div class="flex flex-col justify-center gap-1.5">
+                    <div class="text-lg font-bold text-gray-800" th:text="${review.bookTitle}">책 제목</div>
+                    <div class="text-sm text-gray-500" th:text="${review.bookAuthor}">저자</div>
+                    <div class="text-yellow-400 text-xl mt-1">
                         <span th:each="i : ${#numbers.sequence(1, review.rating)}">★</span><span th:if="${review.rating < 5}" th:each="i : ${#numbers.sequence(review.rating + 1, 5)}">☆</span>
-                    </div>
-
-                    <!-- 작성자 및 날짜 -->
-                    <div class="flex items-center gap-3 mb-4 pb-4 border-b border-gray-200">
-                        <img src="/images/default-avatar.svg" alt="프로필" class="w-10 h-10 rounded-full">
-                        <div>
-                            <a th:href="@{/u/{nickname}(nickname=${author?.nickname})}" class="font-semibold text-gray-800 hover:text-emerald-600 transition-colors" th:text="${author?.nickname}">작성자</a>
-                            <div class="text-xs text-gray-400" th:text="${#temporals.format(review.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-24 10:00</div>
-                        </div>
                     </div>
                 </div>
             </div>
