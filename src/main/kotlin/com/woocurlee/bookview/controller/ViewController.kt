@@ -1,5 +1,6 @@
 package com.woocurlee.bookview.controller
 
+import com.woocurlee.bookview.service.ReviewLikeService
 import com.woocurlee.bookview.service.ReviewService
 import com.woocurlee.bookview.service.UserService
 import org.slf4j.LoggerFactory
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping
 class ViewController(
     private val userService: UserService,
     private val reviewService: ReviewService,
+    private val reviewLikeService: ReviewLikeService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -43,6 +45,15 @@ class ViewController(
         val reviewsPage = reviewService.getReviews(pageable)
         model.addAttribute("reviews", reviewsPage.content)
         model.addAttribute("hasMoreReviews", reviewsPage.hasNext())
+
+        // 좋아요 여부
+        if (user != null) {
+            val reviewIds = reviewsPage.content.mapNotNull { it.id }
+            val likedReviewIds = reviewLikeService.getLikedReviewIds(reviewIds, user.googleId)
+            model.addAttribute("likedReviewIds", likedReviewIds)
+        } else {
+            model.addAttribute("likedReviewIds", emptySet<String>())
+        }
 
         return "index"
     }
@@ -115,6 +126,15 @@ class ViewController(
         val avgRating = if (reviews.isEmpty()) 0.0 else reviews.map { it.rating }.average()
         model.addAttribute("avgRating", String.format("%.1f", avgRating))
 
+        // 좋아요 여부
+        if (currentUser != null) {
+            val reviewIds = reviews.mapNotNull { it.id }
+            val likedReviewIds = reviewLikeService.getLikedReviewIds(reviewIds, currentUser.googleId)
+            model.addAttribute("likedReviewIds", likedReviewIds)
+        } else {
+            model.addAttribute("likedReviewIds", emptySet<String>())
+        }
+
         return "user-page"
     }
 
@@ -135,6 +155,13 @@ class ViewController(
         // 작성자 정보
         val author = userService.findByGoogleId(review.userId)
         model.addAttribute("author", author)
+
+        // 좋아요 여부
+        val hasLiked =
+            user != null &&
+                review.id != null &&
+                reviewLikeService.hasUserLiked(review.id, user.googleId)
+        model.addAttribute("hasLiked", hasLiked)
 
         return "review-detail"
     }
