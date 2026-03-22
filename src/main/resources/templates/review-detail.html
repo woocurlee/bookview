@@ -72,7 +72,7 @@
                     <div class="flex items-center gap-3 mb-4 pb-4 border-b border-gray-200">
                         <img src="/images/default-avatar.svg" alt="프로필" class="w-10 h-10 rounded-full">
                         <div>
-                            <div class="font-semibold text-gray-800" th:text="${author?.nickname}">작성자</div>
+                            <a th:href="@{/u/{nickname}(nickname=${author?.nickname})}" class="font-semibold text-gray-800 hover:text-emerald-600 transition-colors" th:text="${author?.nickname}">작성자</a>
                             <div class="text-xs text-gray-400" th:text="${#temporals.format(review.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-24 10:00</div>
                         </div>
                     </div>
