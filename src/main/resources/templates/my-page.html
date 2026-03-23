@@ -1,50 +1,50 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{layout :: head('마이페이지 - BookView')}"></head>
-<body class="bg-gradient-to-br from-emerald-500 to-green-600 min-h-screen">
+<body class="bg-gradient-to-br from-stone-100 to-stone-50 min-h-screen">
     <header th:replace="~{layout :: header}"></header>
 
     <div class="max-w-7xl mx-auto px-5 py-5">
         <!-- 프로필 카드 -->
-        <div class="bg-white rounded-2xl p-6 md:p-8 mb-6 shadow-lg">
+        <div class="bg-white rounded-xl p-6 md:p-8 mb-6 shadow-md">
             <div class="flex flex-col md:flex-row items-center gap-6 mb-6">
-                <img src="/images/default-avatar.svg" alt="프로필" class="w-20 h-20 md:w-24 md:h-24 rounded-full ring-4 ring-emerald-200">
+                <img src="/images/default-avatar.svg" th:alt="${user.nickname + '의 프로필 사진'}" class="w-20 h-20 md:w-24 md:h-24 rounded-full ring-4 ring-amber-200">
                 <div class="flex-1 text-center md:text-left">
                     <div class="flex items-center justify-center md:justify-start gap-2 mb-2">
-                        <h1 class="text-2xl md:text-3xl font-bold text-gray-800" th:text="${user.nickname}">사용자</h1>
-                        <button onclick="openEditModal()" class="text-gray-500 hover:text-emerald-600 transition-colors p-1">
+                        <h1 class="text-2xl md:text-3xl font-bold text-stone-800" th:text="${user.nickname}">사용자</h1>
+                        <button onclick="openEditModal()" class="text-stone-500 hover:text-amber-600 transition-colors p-1">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                             </svg>
                         </button>
                     </div>
-                    <p class="text-gray-600 text-sm md:text-base" th:text="${user.email}">email@example.com</p>
+                    <p class="text-stone-600 text-sm md:text-base" th:text="${user.email}">email@example.com</p>
                 </div>
             </div>
 
             <!-- 통계 -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div class="bg-gradient-to-br from-emerald-50 to-green-50 p-5 md:p-6 rounded-xl text-center">
+                <div class="bg-amber-50 border border-amber-200 p-5 md:p-6 rounded-xl text-center">
                     <div class="text-3xl mb-2">📚</div>
-                    <div class="text-2xl font-bold text-emerald-600" th:text="${myReviews.size()}">0</div>
-                    <div class="text-gray-600 text-sm">작성한 리뷰</div>
+                    <div class="text-2xl font-bold text-amber-600" th:text="${myReviews.size()}">0</div>
+                    <div class="text-stone-600 text-sm">작성한 리뷰</div>
                 </div>
-                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 md:p-6 rounded-xl text-center">
+                <div class="bg-blue-50 border border-blue-200 p-5 md:p-6 rounded-xl text-center">
                     <div class="text-3xl mb-2">⭐</div>
                     <div class="text-2xl font-bold text-blue-600" th:text="${avgRating}">0.0</div>
-                    <div class="text-gray-600 text-sm">평균 별점</div>
+                    <div class="text-stone-600 text-sm">평균 별점</div>
                 </div>
-                <div class="bg-gradient-to-br from-purple-50 to-pink-50 p-5 md:p-6 rounded-xl text-center">
+                <div class="bg-stone-50 border border-stone-200 p-5 md:p-6 rounded-xl text-center">
                     <div class="text-3xl mb-2">📖</div>
-                    <div class="text-2xl font-bold text-purple-600" th:text="${myReviews.size()}">0</div>
-                    <div class="text-gray-600 text-sm">읽은 책</div>
+                    <div class="text-2xl font-bold text-stone-700" th:text="${myReviews.size()}">0</div>
+                    <div class="text-stone-600 text-sm">읽은 책</div>
                 </div>
             </div>
         </div>
 
         <!-- 내가 쓴 리뷰 -->
-        <div class="bg-white rounded-2xl p-6 md:p-8 shadow-lg">
-            <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-6">📝 내가 쓴 리뷰</h2>
+        <div class="bg-white rounded-xl p-6 md:p-8 shadow-md">
+            <h2 class="text-xl md:text-2xl font-bold text-stone-800 mb-6">📝 내가 쓴 리뷰</h2>
 
             <div th:if="${myReviews != null && !myReviews.isEmpty()}">
                 <!-- 인스타그램 스타일 그리드 -->
@@ -73,8 +73,8 @@
 
             <div th:if="${myReviews == null || myReviews.isEmpty()}" class="text-center py-12">
                 <div class="text-6xl mb-4">📝</div>
-                <p class="text-gray-500 mb-4">아직 작성한 리뷰가 없습니다.</p>
-                <a href="/write-review" class="inline-block px-6 py-3 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors font-semibold">
+                <p class="text-stone-500 mb-4">아직 작성한 리뷰가 없습니다.</p>
+                <a href="/write-review" class="inline-block px-6 py-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors font-semibold shadow-sm hover:shadow-md">
                     첫 리뷰 작성하기
                 </a>
             </div>
@@ -87,20 +87,20 @@
             <h2 class="text-2xl font-bold text-gray-800 mb-6">프로필 수정</h2>
 
             <div class="mb-6">
-                <label class="block mb-2 font-semibold text-gray-700">닉네임</label>
+                <label class="block mb-2 font-semibold text-stone-700">닉네임</label>
                 <input type="text" id="editNickname" th:value="${user.nickname}"
                        placeholder="영어 소문자, 숫자, _, . 사용 가능 (1~30자)"
-                       class="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500"
+                       class="w-full p-3 border-2 border-stone-300 rounded-lg focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
                        autocomplete="off">
-                <p class="text-xs text-gray-500 mt-2">영어 소문자, 숫자, 밑줄(_), 마침표(.) 사용 가능</p>
-                <p class="text-xs text-gray-500">마침표로 시작/끝 불가, 연속 마침표(..) 불가</p>
+                <p class="text-xs text-stone-500 mt-2">영어 소문자, 숫자, 밑줄(_), 마침표(.) 사용 가능</p>
+                <p class="text-xs text-stone-500">마침표로 시작/끝 불가, 연속 마침표(..) 불가</p>
             </div>
 
             <div class="flex gap-3">
-                <button onclick="closeEditModal()" class="flex-1 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-semibold">
+                <button onclick="closeEditModal()" class="flex-1 py-3 bg-stone-200 text-stone-800 rounded-lg hover:bg-stone-300 transition-colors font-semibold">
                     취소
                 </button>
-                <button onclick="saveProfile()" class="flex-1 py-3 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors font-semibold">
+                <button onclick="saveProfile()" class="flex-1 py-3 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors font-semibold">
                     저장
                 </button>
             </div>
