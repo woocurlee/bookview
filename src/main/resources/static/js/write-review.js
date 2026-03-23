@@ -153,7 +153,7 @@ async function searchBooks(loadMore = false) {
         if (data.documents && data.documents.length > 0) {
             data.documents.forEach(book => {
                 const bookItem = document.createElement('div');
-                bookItem.className = 'flex flex-col p-4 border-2 border-gray-200 rounded-lg cursor-pointer transition-all hover:border-green-500 hover:bg-gray-50';
+                bookItem.className = 'flex flex-col p-4 border-2 border-stone-200 rounded-lg cursor-pointer transition-all hover:border-amber-500 hover:bg-amber-50';
                 bookItem.onclick = () => selectBook(book);
                 bookItem.innerHTML = `
                     <img src="${book.thumbnail}" alt="${book.title}" class="w-full h-48 object-contain rounded mb-3">
