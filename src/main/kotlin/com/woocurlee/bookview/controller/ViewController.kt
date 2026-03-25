@@ -110,7 +110,13 @@ class ViewController(
         model: Model,
         @AuthenticationPrincipal principal: Any?,
     ): String {
-        val profileUser = userService.findByNickname(nickname) ?: return "error/404"
+        val profileUser =
+            userService.findByNickname(nickname) ?: run {
+                model.addAttribute("status", 404)
+                model.addAttribute("message", "존재하지 않는 사용자입니다")
+                model.addAttribute("detail", "@$nickname 사용자를 찾을 수 없습니다.")
+                return "error"
+            }
 
         // 현재 로그인 유저 확인
         val currentUser = addUserToModel(principal, userService, model)
