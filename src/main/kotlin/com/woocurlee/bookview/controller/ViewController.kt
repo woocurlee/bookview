@@ -1,5 +1,6 @@
 package com.woocurlee.bookview.controller
 
+import com.woocurlee.bookview.service.CommentService
 import com.woocurlee.bookview.service.ReviewLikeService
 import com.woocurlee.bookview.service.ReviewService
 import com.woocurlee.bookview.service.UserService
@@ -14,6 +15,7 @@ class ViewController(
     private val userService: UserService,
     private val reviewService: ReviewService,
     private val reviewLikeService: ReviewLikeService,
+    private val commentService: CommentService,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -165,6 +167,29 @@ class ViewController(
                 review.id != null &&
                 reviewLikeService.hasUserLiked(review.id, user.googleId)
         model.addAttribute("hasLiked", hasLiked)
+
+        // 댓글 목록 (계층 구조)
+        if (review.id != null) {
+            val comments = commentService.getCommentsByReviewId(review.id)
+
+            // 최상위 댓글과 대댓글 분리
+            val topLevelComments = comments.filter { it.parentId == null }
+            val replies = comments.filter { it.parentId != null }
+
+            // 각 최상위 댓글에 대한 대댓글 매핑
+            val commentRepliesMap = replies.groupBy { it.parentId }
+
+            model.addAttribute("topLevelComments", topLevelComments)
+            model.addAttribute("commentRepliesMap", commentRepliesMap)
+            model.addAttribute("commentCount", comments.size)
+        } else {
+            model.addAttribute("topLevelComments", emptyList<com.woocurlee.bookview.dto.CommentResponse>())
+            model.addAttribute(
+                "commentRepliesMap",
+                emptyMap<String, List<com.woocurlee.bookview.dto.CommentResponse>>(),
+            )
+            model.addAttribute("commentCount", 0)
+        }
 
         return "review-detail"
     }
