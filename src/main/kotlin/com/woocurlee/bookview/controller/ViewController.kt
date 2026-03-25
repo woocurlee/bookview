@@ -228,6 +228,14 @@ class ViewController(
         return "write-review"
     }
 
+    @GetMapping("/login-error")
+    fun loginError(model: Model): String {
+        model.addAttribute("status", 500)
+        model.addAttribute("message", "로그인에 실패했습니다")
+        model.addAttribute("detail", "잠시 후 다시 시도해주세요.")
+        return "error"
+    }
+
     @GetMapping("/privacy-policy")
     fun privacyPolicy(): String = "redirect:/privacy-policy.html"
 

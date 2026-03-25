@@ -17,6 +17,7 @@ class SecurityConfig(
     private val authorizationRequestResolver: OAuth2AuthorizationRequestResolver,
     private val jwtAuthenticationFilter: JwtAuthenticationFilter,
     private val oAuth2SuccessHandler: OAuth2SuccessHandler,
+    private val oAuth2FailureHandler: OAuth2FailureHandler,
     private val customLogoutSuccessHandler: CustomLogoutSuccessHandler,
     private val cookieAuthorizationRequestRepository: CookieOAuth2AuthorizationRequestRepository,
 ) {
@@ -37,6 +38,7 @@ class SecurityConfig(
                         "/r/**",
                         "/setup-nickname",
                         "/login/**",
+                        "/login-error",
                         "/oauth2/**",
                         "/css/**",
                         "/js/**",
@@ -65,6 +67,7 @@ class SecurityConfig(
                     }.userInfoEndpoint { userInfo ->
                         userInfo.userService(customOAuth2UserService)
                     }.successHandler(oAuth2SuccessHandler)
+                    .failureHandler(oAuth2FailureHandler)
             }.logout { logout ->
                 logout
                     .logoutSuccessHandler(customLogoutSuccessHandler)
