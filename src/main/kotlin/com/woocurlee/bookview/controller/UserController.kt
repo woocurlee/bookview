@@ -29,7 +29,6 @@ class UserController(
                     googleId,
                     request.nickname,
                     request.agreedToTerms,
-                    request.termsVersion,
                 ) ?: return ResponseEntity.notFound().build()
 
             return ResponseEntity.ok(updatedUser.toResponse())

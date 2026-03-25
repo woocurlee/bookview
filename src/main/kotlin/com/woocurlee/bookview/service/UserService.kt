@@ -16,12 +16,12 @@ class UserService(
     fun updateNickname(
         googleId: String,
         nickname: String,
-        agreedToTerms: Boolean = false,
-        termsVersion: String = "1.0",
+        agreedToTerms: Boolean? = null,
     ): User? {
+        val termsVersion = "1.0"
         // 약관 동의 확인 (닉네임 미설정 시에만)
         val user = findByGoogleId(googleId) ?: return null
-        if (!user.isNicknameSet && !agreedToTerms) {
+        if (!user.isNicknameSet && agreedToTerms != true) {
             throw IllegalArgumentException("약관에 동의해야 합니다.")
         }
 
