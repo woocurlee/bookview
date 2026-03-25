@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head th:replace="~{layout :: head('리뷰 작성 - BookView')}"></head>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head(${review != null ? '리뷰 수정 - BookView' : '리뷰 작성 - BookView'})}"></head>
 <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 <style>
     /* Quill 에디터 커스텀 스타일 */
@@ -79,16 +79,28 @@
     <header th:replace="~{layout :: header}"></header>
 
     <div class="max-w-4xl mx-auto px-5 py-5">
-        <div class="bg-white rounded-2xl p-10 shadow-lg">
-            <h1 class="text-gray-800 mb-8 text-3xl font-bold">📝 리뷰 작성</h1>
+        <div class="bg-white rounded-2xl p-6 md:p-10 shadow-lg">
+            <!-- 헤더 (편집 모드일 때만 뒤로가기 버튼 표시) -->
+            <div th:if="${review != null}" class="flex items-center gap-4 mb-8">
+                <button onclick="history.back()" class="text-gray-600 hover:text-emerald-600 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </button>
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-800">리뷰 수정</h1>
+            </div>
+            <h1 th:if="${review == null}" class="text-gray-800 mb-8 text-3xl font-bold">📝 리뷰 작성</h1>
 
+            <!-- 리뷰 제목 -->
             <div class="mb-6">
                 <label class="block mb-2 font-semibold text-gray-800">리뷰 제목 <span class="text-red-500">*</span></label>
                 <input type="text" id="reviewTitle" placeholder="리뷰 제목을 입력하세요" autocomplete="off"
+                       th:value="${review != null ? review.title : ''}"
                        class="w-full p-3 border-2 border-gray-200 rounded-lg text-base focus:outline-none focus:border-emerald-500">
             </div>
 
-            <div class="mb-6">
+            <!-- 책 선택 (작성 모드) -->
+            <div th:if="${review == null}" class="mb-6">
                 <label class="block mb-2 font-semibold text-gray-800">책 선택 <span class="text-red-500">*</span></label>
                 <button onclick="openBookModal()" class="w-full p-3 bg-emerald-500 text-white rounded-lg text-base cursor-pointer transition-colors hover:bg-emerald-600">
                     책 검색하기
@@ -104,6 +116,21 @@
                 </div>
             </div>
 
+            <!-- 책 정보 (편집 모드, 읽기 전용) -->
+            <div th:if="${review != null}" class="mb-6 p-4 bg-gray-50 rounded-lg">
+                <div class="flex gap-4">
+                    <img th:src="${review.bookThumbnail}"
+                         alt="책 표지"
+                         th:if="${review.bookThumbnail != null && !review.bookThumbnail.isEmpty()}"
+                         class="w-20 h-28 object-cover rounded shadow">
+                    <div>
+                        <h3 class="font-bold text-lg text-gray-800" th:text="${review.bookTitle}">책 제목</h3>
+                        <p class="text-gray-600" th:text="${review.bookAuthor}">저자</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 별점 -->
             <div class="mb-6">
                 <label class="block mb-2 font-semibold text-gray-800">별점 <span class="text-red-500">*</span></label>
                 <div id="rating" class="flex gap-2 text-4xl">
@@ -115,15 +142,18 @@
                 </div>
             </div>
 
+            <!-- 인상 깊은 문장 -->
             <div class="mb-6">
-                <label class="block mb-2 font-semibold text-gray-800">명언 <span class="text-red-500">*</span> (5~100자)</label>
-                <input type="text" id="quote" placeholder="책에서 인상 깊었던 명언을 입력하세요" maxlength="100" autocomplete="off"
-                       class="w-full p-3 border-2 border-gray-200 rounded-lg text-base focus:outline-none focus:border-emerald-500">
+                <label class="block mb-2 font-semibold text-gray-800">인상 깊은 문장 <span class="text-red-500">*</span> (5~100자)</label>
+                <textarea id="quote" placeholder="책에서 인상 깊었던 문장을 적어주세요" maxlength="100" autocomplete="off" rows="3"
+                          th:text="${review != null ? review.quote : ''}"
+                          class="w-full p-3 border-2 border-gray-200 rounded-lg text-base focus:outline-none focus:border-emerald-500"></textarea>
                 <div class="text-xs text-gray-400 mt-1">
                     <span id="quoteLength">0</span>/100자
                 </div>
             </div>
 
+            <!-- 리뷰 내용 -->
             <div class="mb-6">
                 <label class="block mb-2 font-semibold text-gray-800">리뷰 내용 <span class="text-red-500">*</span></label>
                 <div id="editor-container">
@@ -131,14 +161,26 @@
                 </div>
             </div>
 
-            <button onclick="submitReview()" class="w-full p-4 bg-green-500 text-white rounded-lg text-lg font-semibold cursor-pointer transition-colors hover:bg-green-600 md:mt-16 mt-24">
+            <!-- 버튼 -->
+            <div th:if="${review != null}" class="flex gap-3 md:mt-16 mt-24">
+                <button type="button" onclick="history.back()"
+                        class="flex-1 p-4 bg-gray-200 text-gray-800 rounded-lg text-lg font-semibold cursor-pointer transition-colors hover:bg-gray-300">
+                    취소
+                </button>
+                <button onclick="submitReview()"
+                        class="flex-1 p-4 bg-emerald-500 text-white rounded-lg text-lg font-semibold cursor-pointer transition-colors hover:bg-emerald-600">
+                    수정 완료
+                </button>
+            </div>
+            <button th:if="${review == null}" onclick="submitReview()"
+                    class="w-full p-4 bg-green-500 text-white rounded-lg text-lg font-semibold cursor-pointer transition-colors hover:bg-green-600 md:mt-16 mt-24">
                 리뷰 등록
             </button>
         </div>
     </div>
 
-    <!-- 책 검색 모달 -->
-    <div id="bookModal" class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex justify-center items-center" onclick="handleModalClick(event)">
+    <!-- 책 검색 모달 (작성 모드만) -->
+    <div th:if="${review == null}" id="bookModal" class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex justify-center items-center" onclick="handleModalClick(event)">
         <div class="bg-white rounded-2xl p-8 w-11/12 max-w-2xl max-h-[80vh] overflow-y-auto" onclick="event.stopPropagation()">
             <div class="flex justify-between items-center mb-5">
                 <h2 class="text-gray-800 text-2xl font-bold">책 검색</h2>
@@ -163,6 +205,14 @@
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     <script src="/js/common.js"></script>
     <script src="/js/write-review.js"></script>
+    <script th:inline="javascript">
+        // 편집 모드 데이터
+        const isEditMode = /*[[${review != null}]]*/ false;
+        const reviewId = /*[[${review != null ? review.id : ''}]]*/ '';
+        const reviewNo = /*[[${review != null ? review.reviewNo : 0}]]*/ 0;
+        const initialRating = /*[[${review != null ? review.rating : 0}]]*/ 0;
+        const initialContent = /*[[${review != null ? review.content : ''}]]*/ '';
+    </script>
     <script th:replace="~{layout :: mobileMenuScript}"></script>
 </body>
 </html>

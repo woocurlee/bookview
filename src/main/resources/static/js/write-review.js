@@ -49,17 +49,40 @@ function setupInfiniteScroll() {
 
 document.addEventListener('DOMContentLoaded', function() {
     setupQuoteCounter();
-    setupInfiniteScroll();
 
-    // 엔터키로 검색
-    document.getElementById('bookSearch').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            searchBooks();
+    // 편집 모드인 경우
+    if (typeof isEditMode !== 'undefined' && isEditMode) {
+        // 별점 초기화
+        selectedRating = initialRating;
+        updateStars(initialRating);
+
+        // 에디터 초기 컨텐츠 설정
+        if (initialContent) {
+            quill.root.innerHTML = initialContent;
         }
-    });
 
-    // 모달 바깥 클릭 설정
-    Modal.setupOutsideClick('bookModal');
+        // 명언 글자수 초기화
+        const quoteInput = document.getElementById('quote');
+        if (quoteInput) {
+            document.getElementById('quoteLength').textContent = quoteInput.value.length;
+        }
+    } else {
+        // 작성 모드인 경우
+        setupInfiniteScroll();
+
+        // 엔터키로 검색
+        const bookSearchInput = document.getElementById('bookSearch');
+        if (bookSearchInput) {
+            bookSearchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchBooks();
+                }
+            });
+        }
+
+        // 모달 바깥 클릭 설정
+        Modal.setupOutsideClick('bookModal');
+    }
 });
 
 // 별점 설정
@@ -207,7 +230,7 @@ function selectBook(book) {
     closeBookModal();
 }
 
-// 리뷰 제출
+// 리뷰 제출 (작성 및 수정 통합)
 async function submitReview() {
     const title = document.getElementById('reviewTitle').value.trim();
     const quote = document.getElementById('quote').value.trim();
@@ -219,7 +242,8 @@ async function submitReview() {
         return;
     }
 
-    if (!selectedBook) {
+    // 작성 모드: 책 선택 필수
+    if (!isEditMode && !selectedBook) {
         Alert.error('책을 선택하세요');
         return;
     }
@@ -230,12 +254,12 @@ async function submitReview() {
     }
 
     if (!quote) {
-        Alert.error('명언을 입력하세요');
+        Alert.error('인상 깊은 문장을 입력하세요');
         return;
     }
 
     if (!Validator.textLength(quote, 5, 100)) {
-        Alert.error('명언은 5~100자로 입력하세요');
+        Alert.error('인상 깊은 문장은 5~100자로 입력하세요');
         return;
     }
 
@@ -245,20 +269,34 @@ async function submitReview() {
     }
 
     try {
-        await API.post('/api/reviews', {
-            title: title,
-            bookTitle: selectedBook.title,
-            bookAuthor: selectedBook.author,
-            bookIsbn: selectedBook.isbn,
-            bookThumbnail: selectedBook.thumbnail,
-            rating: selectedRating,
-            quote: quote,
-            content: content
-        });
+        if (isEditMode) {
+            // 편집 모드: PUT 요청
+            await API.put(`/api/reviews/${reviewId}`, {
+                title: title,
+                rating: selectedRating,
+                quote: quote,
+                content: content
+            });
 
-        Alert.success('리뷰가 등록되었습니다!');
-        window.location.href = '/';
+            Alert.success('리뷰가 수정되었습니다!');
+            window.location.href = `/r/${reviewNo}`;
+        } else {
+            // 작성 모드: POST 요청
+            await API.post('/api/reviews', {
+                title: title,
+                bookTitle: selectedBook.title,
+                bookAuthor: selectedBook.author,
+                bookIsbn: selectedBook.isbn,
+                bookThumbnail: selectedBook.thumbnail,
+                rating: selectedRating,
+                quote: quote,
+                content: content
+            });
+
+            Alert.success('리뷰가 등록되었습니다!');
+            window.location.href = '/';
+        }
     } catch (error) {
-        Alert.error('리뷰 등록에 실패했습니다.');
+        Alert.error(isEditMode ? '리뷰 수정에 실패했습니다.' : '리뷰 등록에 실패했습니다.');
     }
 }
