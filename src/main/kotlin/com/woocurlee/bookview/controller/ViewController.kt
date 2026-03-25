@@ -219,7 +219,7 @@ class ViewController(
         }
 
         model.addAttribute("review", review)
-        return "edit-review"
+        return "write-review"
     }
 
     @GetMapping("/privacy-policy")
