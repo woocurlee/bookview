@@ -279,7 +279,7 @@ async function submitReview() {
             });
 
             Alert.success('리뷰가 수정되었습니다!');
-            window.location.href = `/r/${reviewNo}`;
+            window.location.replace(`/r/${reviewNo}`);
         } else {
             // 작성 모드: POST 요청
             await API.post('/api/reviews', {
@@ -294,7 +294,7 @@ async function submitReview() {
             });
 
             Alert.success('리뷰가 등록되었습니다!');
-            window.location.href = '/';
+            window.location.replace('/');
         }
     } catch (error) {
         Alert.error(isEditMode ? '리뷰 수정에 실패했습니다.' : '리뷰 등록에 실패했습니다.');
