@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{layout :: head('리뷰 상세 - BookView')}"></head>
-<body class="bg-gradient-to-br from-emerald-500 to-green-600 min-h-screen">
+<body class="bg-gradient-to-br from-stone-100 to-stone-50 min-h-screen">
     <header th:replace="~{layout :: header}"></header>
 
     <div class="max-w-3xl mx-auto px-4 py-5">
 
         <!-- 상단 네비게이션 -->
         <div class="flex justify-between items-center mb-4">
-            <button onclick="history.back()" class="text-white/80 hover:text-white transition-colors">
+            <button onclick="history.back()" class="text-stone-600 hover:text-stone-900 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
@@ -16,7 +16,7 @@
 
             <!-- 더보기 버튼 (본인만) -->
             <div th:if="${user != null && user.googleId == review.userId}" class="relative">
-                <button onclick="toggleMenu()" class="text-white/80 hover:text-white text-2xl px-2">
+                <button onclick="toggleMenu()" class="text-stone-600 hover:text-stone-900 text-2xl px-2">
                     ⋯
                 </button>
                 <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
@@ -34,10 +34,10 @@
         </div>
 
         <!-- 메인 카드 -->
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
 
             <!-- 책 정보 히어로 -->
-            <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-6 md:p-8">
+            <div class="bg-stone-800 p-6 md:p-8">
                 <div class="flex gap-5 items-start">
                     <img th:src="${review.bookThumbnail}"
                          alt="책 표지"
@@ -45,9 +45,9 @@
                          class="w-28 h-40 md:w-32 md:h-44 object-cover rounded-lg shadow-2xl flex-shrink-0 ring-1 ring-white/10">
                     <div class="flex flex-col justify-center gap-2 min-w-0 pt-1">
                         <div class="text-lg md:text-xl font-bold text-white leading-snug" th:text="${review.bookTitle}">책 제목</div>
-                        <div class="text-sm text-gray-300" th:text="${review.bookAuthor}">저자</div>
-                        <div class="text-yellow-400 text-lg mt-1">
-                            <span th:each="i : ${#numbers.sequence(1, review.rating)}">★</span><span class="text-gray-600" th:if="${review.rating < 5}" th:each="i : ${#numbers.sequence(review.rating + 1, 5)}">★</span>
+                        <div class="text-sm text-stone-300" th:text="${review.bookAuthor}">저자</div>
+                        <div class="text-yellow-400 text-2xl mt-1">
+                            <span th:each="i : ${#numbers.sequence(1, review.rating)}">★</span><span class="text-stone-600" th:if="${review.rating < 5}" th:each="i : ${#numbers.sequence(review.rating + 1, 5)}">★</span>
                         </div>
                     </div>
                 </div>
@@ -60,18 +60,19 @@
                 <div class="flex items-center justify-between mb-6">
                     <a th:href="@{/u/{nickname}(nickname=${author?.nickname})}"
                        class="flex items-center gap-3 hover:opacity-75 transition-opacity">
-                        <img src="/images/default-avatar.svg" alt="프로필" class="w-10 h-10 rounded-full ring-2 ring-emerald-100">
+                        <img src="/images/default-avatar.svg" th:alt="${author?.nickname + '의 프로필 사진'}" class="w-10 h-10 rounded-full ring-2 ring-amber-200">
                         <div>
-                            <div class="font-semibold text-gray-800 text-sm" th:text="${author?.nickname}">작성자</div>
-                            <div class="text-xs text-gray-400" th:text="${#temporals.format(review.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-24 10:00</div>
+                            <div class="font-semibold text-stone-800 text-sm" th:text="${author?.nickname}">작성자</div>
+                            <div class="text-xs text-stone-400" th:text="${#temporals.format(review.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-24 10:00</div>
                         </div>
                     </a>
                     <button id="likeButton"
+                            aria-label="좋아요"
                             th:data-review-no="${review.reviewNo}"
                             th:data-liked="${hasLiked}"
                             th:data-is-author="${user != null && user.googleId == review.userId}"
                             th:data-logged-in="${user != null}"
-                            th:classappend="${hasLiked} ? 'text-red-500' : 'text-gray-300'"
+                            th:classappend="${hasLiked} ? 'text-red-500' : 'text-stone-300'"
                             class="flex items-center gap-1.5 text-sm transition-all hover:text-red-500 hover:scale-105"
                             onclick="toggleLike(this)">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" th:classappend="${hasLiked} ? 'fill-current' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -82,21 +83,239 @@
                 </div>
 
                 <!-- 리뷰 제목 -->
-                <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-5 leading-snug" th:text="${review.title}">리뷰 제목</h1>
+                <h1 class="text-2xl md:text-3xl font-bold text-stone-800 mb-5 leading-snug" th:text="${review.title}">리뷰 제목</h1>
 
                 <!-- 명언 -->
                 <div th:if="${review.quote != null && !review.quote.isEmpty()}"
-                     class="relative mb-6 pl-5 py-3 border-l-4 border-emerald-400 bg-emerald-50/50 rounded-r-lg">
-                    <span class="text-emerald-300 text-4xl font-serif absolute -top-2 left-2 leading-none">"</span>
-                    <p class="text-gray-600 italic text-base ml-3" th:text="${review.quote}">명언</p>
+                     class="relative mb-6 pl-5 py-3 border-l-4 border-amber-400 bg-amber-50 rounded-r-lg">
+                    <p class="text-stone-700 italic text-base" th:text="${review.quote}">명언</p>
                 </div>
 
                 <!-- 리뷰 내용 -->
                 <div class="prose prose-gray max-w-none">
-                    <div class="text-gray-700 leading-relaxed text-base md:text-lg" th:utext="${review.content}">
+                    <div class="text-stone-700 leading-relaxed text-base md:text-lg" th:utext="${review.content}">
                         리뷰 내용...
                     </div>
                 </div>
+
+                <!-- 댓글 섹션 -->
+                <div class="border-t border-stone-200 mt-8 pt-6">
+
+                    <!-- 댓글 헤더 -->
+                    <h3 class="text-lg font-bold text-stone-800 mb-4">
+                        댓글 <span th:text="${commentCount}">0</span>개
+                    </h3>
+
+                    <!-- 댓글 작성 폼 (로그인 시) -->
+                    <div th:if="${user != null}" class="mb-6">
+                        <div class="bg-stone-50 rounded-lg p-4">
+                            <textarea id="commentInput"
+                                      placeholder="댓글을 입력하세요..."
+                                      maxlength="500"
+                                      class="w-full p-3 border border-stone-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                                      rows="3"></textarea>
+                            <div class="flex justify-between items-center mt-2">
+                                <span id="charCount" class="text-xs text-stone-500">0 / 500</span>
+                                <button id="submitComment"
+                                        th:data-review-id="${review.id}"
+                                        onclick="submitComment()"
+                                        class="px-5 py-2 bg-amber-500 text-white font-semibold rounded-lg hover:bg-amber-600 transition-colors text-sm">
+                                    댓글 작성
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 로그인 유도 (비로그인 시) -->
+                    <div th:if="${user == null}" class="mb-6">
+                        <div class="bg-stone-50 rounded-lg p-4 text-center">
+                            <p class="text-stone-600 mb-3">댓글을 작성하려면 로그인이 필요합니다.</p>
+                            <a href="/oauth2/authorization/google"
+                               class="inline-block px-5 py-2 bg-amber-500 text-white font-semibold rounded-lg hover:bg-amber-600 transition-colors text-sm">
+                                로그인
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 댓글 목록 -->
+                    <div class="space-y-4">
+                        <!-- 최상위 댓글 -->
+                        <div th:each="comment : ${topLevelComments}" class="bg-stone-50 rounded-lg p-4">
+                            <!-- 삭제된 댓글 -->
+                            <div th:if="${comment.status.name() == 'DELETED'}" class="flex items-start gap-3">
+                                <img src="/images/default-avatar.svg"
+                                     alt="삭제된 사용자"
+                                     class="w-10 h-10 rounded-full flex-shrink-0 opacity-50">
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="font-semibold text-stone-500 text-sm">삭제된 사용자</span>
+                                        <span class="text-xs text-stone-400" th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-24 10:00</span>
+                                    </div>
+                                    <p class="text-stone-500 italic mb-2">삭제된 댓글입니다</p>
+
+                                    <!-- 대댓글 목록 (삭제된 댓글에도 표시) -->
+                                    <div th:if="${commentRepliesMap[comment.id] != null}" class="mt-3 ml-12 space-y-3">
+                                        <div th:each="reply : ${commentRepliesMap[comment.id]}" class="bg-white rounded-lg border border-stone-200 p-3">
+                                            <!-- 삭제된 대댓글 -->
+                                            <div th:if="${reply.status.name() == 'DELETED'}" class="flex items-start gap-2">
+                                                <img src="/images/default-avatar.svg"
+                                                     alt="삭제된 사용자"
+                                                     class="w-8 h-8 rounded-full flex-shrink-0 opacity-50">
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="flex items-center gap-2 mb-1">
+                                                        <span class="font-semibold text-stone-500 text-sm">삭제된 사용자</span>
+                                                        <span class="text-xs text-stone-400" th:text="${#temporals.format(reply.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-24 10:00</span>
+                                                    </div>
+                                                    <p class="text-stone-500 italic text-sm">삭제된 댓글입니다</p>
+                                                </div>
+                                            </div>
+                                            <!-- 활성 대댓글 -->
+                                            <div th:if="${reply.status.name() == 'ACTIVE'}" class="flex items-start gap-2">
+                                                <a th:href="@{/u/{nickname}(nickname=${reply.userNickname})}" class="flex-shrink-0">
+                                                    <img src="/images/default-avatar.svg"
+                                                         th:alt="${reply.userNickname + '의 프로필 사진'}"
+                                                         class="w-8 h-8 rounded-full hover:opacity-75 transition-opacity">
+                                                </a>
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="flex items-center gap-2 mb-1">
+                                                        <a th:href="@{/u/{nickname}(nickname=${reply.userNickname})}"
+                                                           class="font-semibold text-stone-800 text-sm hover:text-amber-600 transition-colors"
+                                                           th:text="${reply.userNickname}">닉네임</a>
+                                                        <span th:if="${reply.userId == review.userId}"
+                                                              class="px-2 py-0.5 bg-amber-500 text-white text-xs rounded font-semibold">
+                                                            작성자
+                                                        </span>
+                                                        <span class="text-xs text-stone-400" th:text="${#temporals.format(reply.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-24 10:00</span>
+                                                    </div>
+                                                    <p class="text-stone-700 text-sm mb-2 break-words" th:text="${reply.content}">답글 내용</p>
+                                                    <div class="flex gap-3">
+                                                        <button th:if="${user != null && user.googleId == reply.userId}"
+                                                                th:data-comment-id="${reply.id}"
+                                                                onclick="deleteComment(this)"
+                                                                class="text-sm font-semibold text-red-600 hover:text-red-700 transition-colors">
+                                                            삭제
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 활성 댓글 -->
+                            <div th:if="${comment.status.name() == 'ACTIVE'}" class="flex items-start gap-3">
+                                <a th:href="@{/u/{nickname}(nickname=${comment.userNickname})}" class="flex-shrink-0">
+                                    <img src="/images/default-avatar.svg"
+                                         th:alt="${comment.userNickname + '의 프로필 사진'}"
+                                         class="w-10 h-10 rounded-full hover:opacity-75 transition-opacity">
+                                </a>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <a th:href="@{/u/{nickname}(nickname=${comment.userNickname})}"
+                                           class="font-semibold text-stone-800 text-sm hover:text-amber-600 transition-colors"
+                                           th:text="${comment.userNickname}">닉네임</a>
+                                        <span th:if="${comment.userId == review.userId}"
+                                              class="px-2 py-0.5 bg-amber-500 text-white text-xs rounded font-semibold">
+                                            작성자
+                                        </span>
+                                        <span class="text-xs text-stone-400" th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-24 10:00</span>
+                                    </div>
+                                    <p class="text-stone-700 mb-2 break-words" th:text="${comment.content}">댓글 내용</p>
+                                    <div class="flex gap-3">
+                                        <button th:if="${user != null}"
+                                                th:data-comment-id="${comment.id}"
+                                                onclick="toggleReplyForm(this)"
+                                                class="text-sm font-semibold text-amber-600 hover:text-amber-700 transition-colors">
+                                            답글
+                                        </button>
+                                        <button th:if="${user != null && user.googleId == comment.userId}"
+                                                th:data-comment-id="${comment.id}"
+                                                onclick="deleteComment(this)"
+                                                class="text-sm font-semibold text-red-600 hover:text-red-700 transition-colors">
+                                            삭제
+                                        </button>
+                                    </div>
+
+                                    <!-- 답글 작성 폼 (숨김) -->
+                                    <div th:if="${user != null}"
+                                         th:id="'replyForm-' + ${comment.id}"
+                                         class="hidden mt-3">
+                                        <div class="bg-white rounded-lg border border-stone-200 p-3">
+                                            <textarea th:id="'replyInput-' + ${comment.id}"
+                                                      placeholder="답글을 입력하세요..."
+                                                      maxlength="500"
+                                                      class="w-full p-2 border border-stone-200 rounded resize-none focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent text-sm"
+                                                      rows="2"></textarea>
+                                            <div class="flex justify-end mt-2">
+                                                <button th:data-comment-id="${comment.id}"
+                                                        th:data-review-id="${review.id}"
+                                                        onclick="submitReply(this)"
+                                                        class="px-4 py-1.5 bg-amber-500 text-white font-semibold rounded hover:bg-amber-600 transition-colors text-sm">
+                                                    답글 작성
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 대댓글 목록 -->
+                                    <div th:if="${commentRepliesMap[comment.id] != null}" class="mt-3 ml-12 space-y-3">
+                                        <div th:each="reply : ${commentRepliesMap[comment.id]}" class="bg-white rounded-lg border border-stone-200 p-3">
+                                            <!-- 삭제된 대댓글 -->
+                                            <div th:if="${reply.status.name() == 'DELETED'}" class="flex items-start gap-2">
+                                                <img src="/images/default-avatar.svg"
+                                                     alt="삭제된 사용자"
+                                                     class="w-8 h-8 rounded-full flex-shrink-0 opacity-50">
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="flex items-center gap-2 mb-1">
+                                                        <span class="font-semibold text-stone-500 text-sm">삭제된 사용자</span>
+                                                        <span class="text-xs text-stone-400" th:text="${#temporals.format(reply.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-24 10:00</span>
+                                                    </div>
+                                                    <p class="text-stone-500 italic text-sm">삭제된 댓글입니다</p>
+                                                </div>
+                                            </div>
+                                            <!-- 활성 대댓글 -->
+                                            <div th:if="${reply.status.name() == 'ACTIVE'}" class="flex items-start gap-2">
+                                                <a th:href="@{/u/{nickname}(nickname=${reply.userNickname})}" class="flex-shrink-0">
+                                                    <img src="/images/default-avatar.svg"
+                                                         th:alt="${reply.userNickname + '의 프로필 사진'}"
+                                                         class="w-8 h-8 rounded-full hover:opacity-75 transition-opacity">
+                                                </a>
+                                                <div class="flex-1 min-w-0">
+                                                    <div class="flex items-center gap-2 mb-1">
+                                                        <a th:href="@{/u/{nickname}(nickname=${reply.userNickname})}"
+                                                           class="font-semibold text-stone-800 text-sm hover:text-amber-600 transition-colors"
+                                                           th:text="${reply.userNickname}">닉네임</a>
+                                                        <span th:if="${reply.userId == review.userId}"
+                                                              class="px-2 py-0.5 bg-amber-500 text-white text-xs rounded font-semibold">
+                                                            작성자
+                                                        </span>
+                                                        <span class="text-xs text-stone-400" th:text="${#temporals.format(reply.createdAt, 'yyyy-MM-dd HH:mm')}">2024-12-24 10:00</span>
+                                                    </div>
+                                                    <p class="text-stone-700 text-sm mb-2 break-words" th:text="${reply.content}">답글 내용</p>
+                                                    <div class="flex gap-3">
+                                                        <button th:if="${user != null && user.googleId == reply.userId}"
+                                                                th:data-comment-id="${reply.id}"
+                                                                onclick="deleteComment(this)"
+                                                                class="text-sm font-semibold text-red-600 hover:text-red-700 transition-colors">
+                                                            삭제
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 빈 상태 메시지 -->
+                        <div th:if="${#lists.isEmpty(topLevelComments)}" class="text-center py-8">
+                            <p class="text-stone-500">첫 댓글을 작성해보세요!</p>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
         </div>
@@ -107,6 +326,7 @@
     <script src="/js/common.js"></script>
     <script src="/js/like.js"></script>
     <script src="/js/review-detail.js"></script>
+    <script src="/js/comment.js"></script>
     <script th:inline="javascript">
         const reviewId = /*[[${review.id}]]*/ '';
 

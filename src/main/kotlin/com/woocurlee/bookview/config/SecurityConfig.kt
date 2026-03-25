@@ -43,8 +43,13 @@ class SecurityConfig(
                         "/images/**",
                         "/error",
                     ).permitAll()
-                    .requestMatchers("/api/users", "/api/users/db-info", "/api/external/**", "/api/reviews")
-                    .permitAll()
+                    .requestMatchers(
+                        "/api/users",
+                        "/api/users/db-info",
+                        "/api/external/**",
+                        "/api/reviews",
+                        "/api/comments",
+                    ).permitAll()
                     .requestMatchers("/api/**")
                     .authenticated()
                     .requestMatchers("/favicon.ico", "/apple-touch-icon.png", "/favicon-*.png")

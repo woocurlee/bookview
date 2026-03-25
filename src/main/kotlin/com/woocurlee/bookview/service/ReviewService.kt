@@ -67,4 +67,9 @@ class ReviewService(
     }
 
     fun getReviewByReviewNo(reviewNo: Long): Review? = reviewRepository.findByReviewNoAndStatus(reviewNo, Status.ACTIVE)
+
+    fun getReviewByIdInternal(id: String): Review? {
+        val review = reviewRepository.findById(id).orElse(null)
+        return if (review?.status == Status.ACTIVE) review else null
+    }
 }
