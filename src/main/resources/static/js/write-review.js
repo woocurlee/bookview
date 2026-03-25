@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 에디터 초기 컨텐츠 설정
         if (initialContent) {
-            quill.root.innerHTML = initialContent;
+            quill.root.innerHTML = initialContent.replace(/>\s+</g, '><');
         }
 
         // 명언 글자수 초기화

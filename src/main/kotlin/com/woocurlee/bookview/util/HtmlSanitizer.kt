@@ -1,6 +1,7 @@
 package com.woocurlee.bookview.util
 
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import org.jsoup.safety.Safelist
 
 object HtmlSanitizer {
@@ -20,7 +21,7 @@ object HtmlSanitizer {
      */
     fun sanitize(html: String?): String {
         if (html.isNullOrBlank()) return ""
-        return Jsoup.clean(html, safelist)
+        return Jsoup.clean(html, "", safelist, Document.OutputSettings().prettyPrint(false))
     }
 
     /**
