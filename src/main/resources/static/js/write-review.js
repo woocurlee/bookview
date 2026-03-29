@@ -258,8 +258,8 @@ async function submitReview() {
         return;
     }
 
-    if (!Validator.textLength(quote, 5, 100)) {
-        Alert.error('인상 깊은 문장은 5~100자로 입력하세요');
+    if (!Validator.textLength(quote, 5, 250)) {
+        Alert.error('인상 깊은 문장은 5~250자로 입력하세요');
         return;
     }
 
