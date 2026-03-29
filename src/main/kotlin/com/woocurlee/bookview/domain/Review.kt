@@ -17,7 +17,7 @@ data class Review(
     val bookIsbn: String,
     val bookThumbnail: String?,
     val rating: Int, // 1-5
-    val quote: String, // 명언 (5~100자)
+    val quote: String, // 명언 (5~250자)
     val content: String,
     val likeCount: Long = 0,
     val status: Status = Status.ACTIVE, // 리뷰 상태

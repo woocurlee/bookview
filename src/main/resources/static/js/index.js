@@ -78,7 +78,7 @@ function createReviewCard(review) {
     const stars = createStarRating(review.rating);
 
     const quote = review.quote
-        ? `<div class="review-quote">"${review.quote}"</div>`
+        ? `<div class="review-quote text-sm text-stone-500 italic mb-2.5 line-clamp-2">"${review.quote}"</div>`
         : '';
 
     return `
