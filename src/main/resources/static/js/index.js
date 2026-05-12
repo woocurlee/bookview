@@ -72,18 +72,18 @@ async function loadMoreReviews() {
 
 function createReviewCard(review) {
     const thumbnail = review.bookThumbnail
-        ? `<img src="${review.bookThumbnail}" alt="책 표지" class="h-48 object-cover rounded-lg flex-shrink-0">`
+        ? `<img src="${review.bookThumbnail}" alt="책 표지" class="w-full h-36 sm:w-auto sm:h-48 object-cover rounded-lg sm:flex-shrink-0">`
         : '';
 
     const stars = createStarRating(review.rating);
 
     const quote = review.quote
-        ? `<div class="review-quote text-sm text-stone-500 italic mb-2.5 line-clamp-2">"${review.quote}"</div>`
+        ? `<div class="relative mb-4 pl-5 py-3 border-l-4 border-amber-400 bg-amber-50 rounded-r-lg"><p class="text-stone-700 italic text-base line-clamp-1 md:line-clamp-2">${review.quote}</p></div>`
         : '';
 
     return `
         <a href="/r/${review.reviewNo}" class="block no-underline">
-            <div class="bg-gray-50 rounded-xl p-5 mb-5 transition-all hover:-translate-y-1 hover:shadow-lg flex gap-5 cursor-pointer">
+            <div class="bg-gray-50 rounded-xl p-5 mb-5 transition-all hover:-translate-y-1 hover:shadow-lg flex flex-col sm:flex-row gap-4 sm:gap-5 cursor-pointer">
                 ${thumbnail}
                 <div class="flex-1">
                     <div class="text-xl font-bold mb-2 text-gray-800">${review.title}</div>
@@ -111,7 +111,7 @@ window.addEventListener('scroll', () => {
         clearTimeout(scrollTimeout);
     }
     scrollTimeout = setTimeout(() => {
-        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
+        if ((window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 300) {
             loadMoreReviews();
         }
     }, 100);
