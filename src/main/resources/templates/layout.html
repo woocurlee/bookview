@@ -94,6 +94,23 @@
     <span th:each="i : ${#numbers.sequence(1, rating)}">★</span><span th:if="${rating < 5}" th:each="i : ${#numbers.sequence(rating + 1, 5)}">☆</span>
 </div>
 
+<!-- 작성자 뱃지 컴포넌트 (모바일: 아이콘, 데스크탑: 텍스트) -->
+<span th:fragment="authorBadge(isAuthor)"
+      th:if="${isAuthor}"
+      class="inline-flex items-center justify-center bg-amber-500 text-white rounded font-semibold flex-shrink-0"
+      title="작성자">
+    <svg class="sm:hidden w-3 h-3 m-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+    </svg>
+    <span class="hidden sm:inline px-2 py-0.5 text-xs">작성자</span>
+</span>
+
+<!-- 댓글 날짜 컴포넌트 (모바일: yy-MM-dd HH:mm, 데스크탑: yyyy-MM-dd HH:mm) -->
+<th:block th:fragment="commentDate(dateTime)">
+    <span class="sm:hidden text-xs text-stone-400" th:text="${#temporals.format(dateTime, 'yy-MM-dd HH:mm')}"></span>
+    <span class="hidden sm:inline text-xs text-stone-400" th:text="${#temporals.format(dateTime, 'yyyy-MM-dd HH:mm')}"></span>
+</th:block>
+
 <!-- 리뷰 인용구 컴포넌트 -->
 <div th:fragment="reviewQuote(quote)"
      th:if="${quote != null && !quote.isEmpty()}"
