@@ -9,7 +9,7 @@
     <div th:if="${user != null}"
          onclick="goToWriteReview()"
          class="bg-white rounded-xl p-5 mb-8 shadow-md flex gap-4 items-center cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg">
-        <img src="/images/default-avatar.svg" alt="프로필" class="w-12 h-12 rounded-full object-cover">
+        <img src="/images/default-avatar.svg" alt="프로필" class="hidden sm:block w-12 h-12 rounded-full object-cover flex-shrink-0">
         <div class="flex-1 py-3 px-5 bg-stone-100 rounded-full text-stone-400 text-base">오늘 읽은 책에 대한 생각을 공유해보세요...</div>
     </div>
 
@@ -17,11 +17,11 @@
     <section th:if="${reviews != null && !reviews.isEmpty()}">
         <div id="reviewsContainer" th:each="review : ${reviews}">
             <a th:href="@{/r/{reviewNo}(reviewNo=${review.reviewNo})}" class="block no-underline">
-                <div class="bg-white rounded-xl p-5 mb-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md duration-200 flex gap-5 cursor-pointer">
+                <div class="bg-white rounded-xl p-5 mb-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md duration-200 flex flex-col sm:flex-row gap-4 sm:gap-5 cursor-pointer">
                 <img th:src="${review.bookThumbnail}"
                      th:alt="${review.bookTitle + ' 표지'}"
                      th:if="${review.bookThumbnail != null && !review.bookThumbnail.isEmpty()}"
-                     class="h-48 object-cover rounded-lg flex-shrink-0">
+                     class="w-full h-36 sm:w-auto sm:h-48 object-cover rounded-lg sm:flex-shrink-0">
                 <div class="flex-1">
                     <div class="text-xl font-bold mb-2 text-stone-800" th:text="${review.title}">리뷰 제목</div>
                     <div class="text-sm text-stone-600 mb-2.5">
@@ -33,7 +33,7 @@
                     </div>
                     <div th:if="${review.quote != null && !review.quote.isEmpty()}"
                          class="relative mb-4 pl-5 py-3 border-l-4 border-amber-400 bg-amber-50 rounded-r-lg">
-                        <p class="text-stone-700 italic text-base" th:text="${review.quote}"></p>
+                        <p class="text-stone-700 italic text-base line-clamp-1 md:line-clamp-2" th:text="${review.quote}"></p>
                     </div>
                     <div class="text-stone-700 leading-relaxed mb-2.5 overflow-hidden line-clamp-3"
                          th:utext="${review.content}">리뷰 내용...

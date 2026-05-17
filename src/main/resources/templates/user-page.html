@@ -49,7 +49,7 @@
                 th:text="${isOwner} ? '📝 내가 쓴 리뷰' : '📝 ' + ${profileUser.nickname} + '의 리뷰'">📝 리뷰</h2>
 
             <div th:if="${reviews != null && !reviews.isEmpty()}">
-                <div class="grid grid-cols-3 gap-1 md:gap-2">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-1 md:gap-2">
                     <a th:each="review : ${reviews}"
                        th:href="@{/r/{reviewNo}(reviewNo=${review.reviewNo})}"
                        class="relative aspect-square group cursor-pointer overflow-hidden rounded-lg shadow block">
@@ -82,7 +82,7 @@
 
     <!-- 프로필 수정 모달 (본인만) -->
     <div th:if="${isOwner}" id="editModal" class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex justify-center items-center">
-        <div class="bg-white rounded-2xl p-8 w-11/12 max-w-md">
+        <div class="bg-white rounded-2xl p-5 md:p-8 w-11/12 max-w-md">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">프로필 수정</h2>
 
             <div class="mb-6">
