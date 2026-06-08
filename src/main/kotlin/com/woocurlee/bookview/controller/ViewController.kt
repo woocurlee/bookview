@@ -11,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
+import tools.jackson.databind.ObjectMapper
 
 @Controller
 class ViewController(
@@ -18,6 +19,7 @@ class ViewController(
     private val reviewService: ReviewService,
     private val reviewLikeService: ReviewLikeService,
     private val commentService: CommentService,
+    private val objectMapper: ObjectMapper,
     @Value("\${app.base-url}") private val baseUrl: String,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -29,8 +31,6 @@ class ViewController(
         val text = Jsoup.parse(html).text()
         return if (text.length > maxLength) text.take(maxLength) + "…" else text
     }
-
-    private fun String.escapeJson() = replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "")
 
     @GetMapping("/")
     fun index(
@@ -202,21 +202,28 @@ class ViewController(
 
         // JSON-LD
         val jsonLd =
-            """
-            {
-              "@context": "https://schema.org",
-              "@type": "Review",
-              "name": "${review.title.escapeJson()}",
-              "reviewRating": { "@type": "Rating", "ratingValue": ${review.rating}, "bestRating": 5, "worstRating": 1 },
-              "author": { "@type": "Person", "name": "${(author?.nickname ?: "").escapeJson()}" },
-              "itemReviewed": {
-                "@type": "Book",
-                "name": "${review.bookTitle.escapeJson()}",
-                "author": { "@type": "Person", "name": "${review.bookAuthor.escapeJson()}" }
-              },
-              "datePublished": "${review.createdAt.toLocalDate()}"
-            }
-            """.trimIndent()
+            objectMapper.writeValueAsString(
+                mapOf(
+                    "@context" to "https://schema.org",
+                    "@type" to "Review",
+                    "name" to review.title,
+                    "reviewRating" to
+                        mapOf(
+                            "@type" to "Rating",
+                            "ratingValue" to review.rating,
+                            "bestRating" to 5,
+                            "worstRating" to 1,
+                        ),
+                    "author" to mapOf("@type" to "Person", "name" to (author?.nickname ?: "")),
+                    "itemReviewed" to
+                        mapOf(
+                            "@type" to "Book",
+                            "name" to review.bookTitle,
+                            "author" to mapOf("@type" to "Person", "name" to review.bookAuthor),
+                        ),
+                    "datePublished" to review.createdAt.toLocalDate().toString(),
+                ),
+            )
         model.addAttribute("jsonLd", jsonLd)
 
         // 좋아요 여부
