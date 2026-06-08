@@ -3,6 +3,7 @@ package com.woocurlee.bookview.service
 import com.woocurlee.bookview.common.SequenceNames
 import com.woocurlee.bookview.domain.Review
 import com.woocurlee.bookview.domain.Status
+import com.woocurlee.bookview.dto.ReviewSitemapProjection
 import com.woocurlee.bookview.repository.ReviewRepository
 import com.woocurlee.bookview.util.HtmlSanitizer
 import java.time.LocalDateTime
@@ -77,8 +78,8 @@ class ReviewService(
     fun getActiveReviewsForSitemap(
         page: Int,
         size: Int,
-    ): Page<Review> =
-        reviewRepository.findByStatus(
+    ): Page<ReviewSitemapProjection> =
+        reviewRepository.findSitemapDataByStatus(
             Status.ACTIVE,
             PageRequest.of(page, size),
         )

@@ -2,6 +2,7 @@ package com.woocurlee.bookview.service
 
 import com.woocurlee.bookview.domain.Status
 import com.woocurlee.bookview.domain.User
+import com.woocurlee.bookview.dto.UserSitemapProjection
 import com.woocurlee.bookview.repository.UserRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -71,8 +72,8 @@ class UserService(
     fun getActiveUsersForSitemap(
         page: Int,
         size: Int,
-    ): Page<User> =
-        userRepository.findAllByIsNicknameSetAndStatus(
+    ): Page<UserSitemapProjection> =
+        userRepository.findSitemapDataByIsNicknameSetAndStatus(
             true,
             Status.ACTIVE,
             PageRequest.of(page, size),
