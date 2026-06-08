@@ -45,6 +45,7 @@ Google OAuth2 로그인 → `CustomOAuth2UserService`에서 유저 생성/갱신
 - `ViewController` (페이지 렌더링): `ControllerExtensions.kt`의 `addUserToModel()`로 principal에서 유저를 추출하여 Thymeleaf 모델에 추가. `isNicknameSet` 미설정 시 항상 `/setup-nickname`으로 리다이렉트.
 - `/api/` 하위 REST 컨트롤러: `ResponseEntity` 반환, 인증 필요 엔드포인트는 `@AuthenticationPrincipal principal: Any` 사용.
 - XSS 방지: 리치 텍스트(content)는 `HtmlSanitizer.sanitize()`, 일반 텍스트(title, quote)는 `HtmlSanitizer.toPlainText()` 사용.
+- **컨트롤러는 Repository를 직접 주입받지 않는다.** 반드시 Service 레이어를 통해 데이터에 접근한다.
 
 ### 프론트엔드
 

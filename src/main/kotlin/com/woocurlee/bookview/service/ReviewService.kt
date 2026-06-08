@@ -7,6 +7,7 @@ import com.woocurlee.bookview.repository.ReviewRepository
 import com.woocurlee.bookview.util.HtmlSanitizer
 import java.time.LocalDateTime
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
@@ -72,4 +73,15 @@ class ReviewService(
         val review = reviewRepository.findById(id).orElse(null)
         return if (review?.status == Status.ACTIVE) review else null
     }
+
+    fun getActiveReviewsForSitemap(
+        page: Int,
+        size: Int,
+    ): Page<Review> =
+        reviewRepository.findByStatus(
+            Status.ACTIVE,
+            PageRequest.of(page, size),
+        )
+
+    fun countActiveReviews(): Long = reviewRepository.countByStatus(Status.ACTIVE)
 }

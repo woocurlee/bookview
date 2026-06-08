@@ -2,6 +2,8 @@ package com.woocurlee.bookview.repository
 
 import com.woocurlee.bookview.domain.Status
 import com.woocurlee.bookview.domain.User
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.mongodb.repository.MongoRepository
 
 interface UserRepository : MongoRepository<User, String> {
@@ -23,5 +25,11 @@ interface UserRepository : MongoRepository<User, String> {
     fun findAllByIsNicknameSetAndStatus(
         isNicknameSet: Boolean,
         status: Status,
-    ): List<User>
+        pageable: Pageable,
+    ): Page<User>
+
+    fun countByIsNicknameSetAndStatus(
+        isNicknameSet: Boolean,
+        status: Status,
+    ): Long
 }

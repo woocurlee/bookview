@@ -1,37 +1,57 @@
 package com.woocurlee.bookview.controller
 
-import com.woocurlee.bookview.domain.Status
-import com.woocurlee.bookview.repository.ReviewRepository
-import com.woocurlee.bookview.repository.UserRepository
+import com.woocurlee.bookview.service.ReviewService
+import com.woocurlee.bookview.service.UserService
 import java.time.format.DateTimeFormatter
+import kotlin.math.ceil
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class SitemapController(
-    private val reviewRepository: ReviewRepository,
-    private val userRepository: UserRepository,
+    private val reviewService: ReviewService,
+    private val userService: UserService,
     @Value("\${app.base-url}") private val baseUrl: String,
 ) {
     private val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    private val pageSize = 1000
 
     @GetMapping("/sitemap.xml", produces = [MediaType.APPLICATION_XML_VALUE])
-    fun sitemap(): ResponseEntity<String> {
+    fun sitemapIndex(): ResponseEntity<String> {
+        val reviewCount = reviewService.countActiveReviews()
+        val userCount = userService.countActiveUsersWithNickname()
+        val reviewPages = ceil(reviewCount.toDouble() / pageSize).toInt().coerceAtLeast(1)
+        val userPages = ceil(userCount.toDouble() / pageSize).toInt().coerceAtLeast(1)
+
         val sb = StringBuilder()
-        sb.append("""<?xml version="1.0" encoding="UTF-8"?>""")
-        sb.append("\n")
-        sb.append("""<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">""")
-        sb.append("\n")
+        sb.append("""<?xml version="1.0" encoding="UTF-8"?>""").append("\n")
+        sb.append("""<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">""").append("\n")
 
-        // 홈
-        sb.appendUrl("$baseUrl/", changefreq = "daily", priority = "1.0")
+        repeat(reviewPages) { page ->
+            sb.append("  <sitemap><loc>$baseUrl/sitemap-reviews-$page.xml</loc></sitemap>\n")
+        }
+        repeat(userPages) { page ->
+            sb.append("  <sitemap><loc>$baseUrl/sitemap-users-$page.xml</loc></sitemap>\n")
+        }
 
-        // 리뷰 상세 페이지
-        val reviews = reviewRepository.findAllByStatus(Status.ACTIVE)
-        for (review in reviews) {
+        sb.append("</sitemapindex>")
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_XML).body(sb.toString())
+    }
+
+    @GetMapping("/sitemap-reviews-{page}.xml", produces = [MediaType.APPLICATION_XML_VALUE])
+    fun reviewsSitemap(
+        @PathVariable page: Int,
+    ): ResponseEntity<String> {
+        val reviews = reviewService.getActiveReviewsForSitemap(page, pageSize)
+        val sb = StringBuilder()
+        sb.append("""<?xml version="1.0" encoding="UTF-8"?>""").append("\n")
+        sb.append("""<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">""").append("\n")
+
+        reviews.content.forEach { review ->
             if (review.reviewNo != null) {
                 sb.appendUrl(
                     loc = "$baseUrl/r/${review.reviewNo}",
@@ -42,9 +62,20 @@ class SitemapController(
             }
         }
 
-        // 유저 프로필 페이지
-        val users = userRepository.findAllByIsNicknameSetAndStatus(true, Status.ACTIVE)
-        for (user in users) {
+        sb.append("</urlset>")
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_XML).body(sb.toString())
+    }
+
+    @GetMapping("/sitemap-users-{page}.xml", produces = [MediaType.APPLICATION_XML_VALUE])
+    fun usersSitemap(
+        @PathVariable page: Int,
+    ): ResponseEntity<String> {
+        val users = userService.getActiveUsersForSitemap(page, pageSize)
+        val sb = StringBuilder()
+        sb.append("""<?xml version="1.0" encoding="UTF-8"?>""").append("\n")
+        sb.append("""<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">""").append("\n")
+
+        users.content.forEach { user ->
             sb.appendUrl(
                 loc = "$baseUrl/u/${user.nickname}",
                 lastmod = user.lastLoginAt.format(dateFormatter),
@@ -54,10 +85,7 @@ class SitemapController(
         }
 
         sb.append("</urlset>")
-        return ResponseEntity
-            .ok()
-            .contentType(MediaType.APPLICATION_XML)
-            .body(sb.toString())
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_XML).body(sb.toString())
     }
 
     private fun StringBuilder.appendUrl(
