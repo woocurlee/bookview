@@ -2,7 +2,10 @@ package com.woocurlee.bookview.service
 
 import com.woocurlee.bookview.domain.Status
 import com.woocurlee.bookview.domain.User
+import com.woocurlee.bookview.dto.UserSitemapProjection
 import com.woocurlee.bookview.repository.UserRepository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 
 @Service
@@ -65,4 +68,16 @@ class UserService(
         val deleted = user.copy(status = Status.DELETED)
         userRepository.save(deleted)
     }
+
+    fun getActiveUsersForSitemap(
+        page: Int,
+        size: Int,
+    ): Page<UserSitemapProjection> =
+        userRepository.findSitemapDataByIsNicknameSetAndStatus(
+            true,
+            Status.ACTIVE,
+            PageRequest.of(page, size),
+        )
+
+    fun countActiveUsersWithNickname(): Long = userRepository.countByIsNicknameSetAndStatus(true, Status.ACTIVE)
 }

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{layout :: head('리뷰 상세 - BookView')}"></head>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head(${seoTitle})}"></head>
 <body class="bg-gradient-to-br from-stone-100 to-stone-50 min-h-screen">
     <header th:replace="~{layout :: header}"></header>
 
@@ -337,5 +337,6 @@
         });
     </script>
     <script th:replace="~{layout :: mobileMenuScript}"></script>
+    <script type="application/ld+json" th:utext="${jsonLd}"></script>
 </body>
 </html>

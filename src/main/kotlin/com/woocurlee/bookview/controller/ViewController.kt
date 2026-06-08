@@ -4,11 +4,14 @@ import com.woocurlee.bookview.service.CommentService
 import com.woocurlee.bookview.service.ReviewLikeService
 import com.woocurlee.bookview.service.ReviewService
 import com.woocurlee.bookview.service.UserService
+import org.jsoup.Jsoup
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
+import tools.jackson.databind.ObjectMapper
 
 @Controller
 class ViewController(
@@ -16,8 +19,18 @@ class ViewController(
     private val reviewService: ReviewService,
     private val reviewLikeService: ReviewLikeService,
     private val commentService: CommentService,
+    private val objectMapper: ObjectMapper,
+    @Value("\${app.base-url}") private val baseUrl: String,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+
+    private fun plainText(
+        html: String,
+        maxLength: Int = 150,
+    ): String {
+        val text = Jsoup.parse(html).text()
+        return if (text.length > maxLength) text.take(maxLength) + "…" else text
+    }
 
     @GetMapping("/")
     fun index(
@@ -47,6 +60,7 @@ class ViewController(
         val reviewsPage = reviewService.getReviews(pageable)
         model.addAttribute("reviews", reviewsPage.content)
         model.addAttribute("hasMoreReviews", reviewsPage.hasNext())
+        model.addAttribute("canonicalUrl", baseUrl)
 
         // 좋아요 여부
         if (user != null) {
@@ -137,6 +151,13 @@ class ViewController(
         val totalLikes = reviews.sumOf { it.likeCount }
         model.addAttribute("totalLikes", totalLikes)
 
+        // SEO
+        model.addAttribute(
+            "metaDescription",
+            "${profileUser.nickname}의 BookView 프로필 - ${reviews.size}개의 리뷰, 평균 별점 ${String.format("%.1f", avgRating)}",
+        )
+        model.addAttribute("canonicalUrl", "$baseUrl/u/${profileUser.nickname}")
+
         // 좋아요 여부
         if (currentUser != null) {
             val reviewIds = reviews.mapNotNull { it.id }
@@ -166,6 +187,46 @@ class ViewController(
         // 작성자 정보
         val author = userService.findByGoogleId(review.userId)
         model.addAttribute("author", author)
+
+        // SEO
+        val seoTitle = "${review.title} - ${review.bookTitle} | BookView"
+        val contentPreview = plainText(review.content)
+        val description = "${review.bookTitle} (${review.bookAuthor}) 리뷰 - $contentPreview"
+        val ogImageUrl =
+            if (!review.bookThumbnail.isNullOrEmpty()) review.bookThumbnail else "$baseUrl/images/bookview-og.png"
+        model.addAttribute("seoTitle", seoTitle)
+        model.addAttribute("metaDescription", description)
+        model.addAttribute("ogImage", ogImageUrl)
+        model.addAttribute("ogType", "article")
+        model.addAttribute("canonicalUrl", "$baseUrl/r/${review.reviewNo}")
+
+        // JSON-LD
+        // </script> 패턴으로 스크립트 블록 조기 종료를 막기 위해 < 를 < 로 이스케이프
+        val jsonLd =
+            objectMapper
+                .writeValueAsString(
+                    mapOf(
+                        "@context" to "https://schema.org",
+                        "@type" to "Review",
+                        "name" to review.title,
+                        "reviewRating" to
+                            mapOf(
+                                "@type" to "Rating",
+                                "ratingValue" to review.rating,
+                                "bestRating" to 5,
+                                "worstRating" to 1,
+                            ),
+                        "author" to mapOf("@type" to "Person", "name" to (author?.nickname ?: "")),
+                        "itemReviewed" to
+                            mapOf(
+                                "@type" to "Book",
+                                "name" to review.bookTitle,
+                                "author" to mapOf("@type" to "Person", "name" to review.bookAuthor),
+                            ),
+                        "datePublished" to review.createdAt.toLocalDate().toString(),
+                    ),
+                ).replace("<", "\\u003c")
+        model.addAttribute("jsonLd", jsonLd)
 
         // 좋아요 여부
         val hasLiked =

@@ -3,10 +3,12 @@ package com.woocurlee.bookview.service
 import com.woocurlee.bookview.common.SequenceNames
 import com.woocurlee.bookview.domain.Review
 import com.woocurlee.bookview.domain.Status
+import com.woocurlee.bookview.dto.ReviewSitemapProjection
 import com.woocurlee.bookview.repository.ReviewRepository
 import com.woocurlee.bookview.util.HtmlSanitizer
 import java.time.LocalDateTime
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
@@ -72,4 +74,15 @@ class ReviewService(
         val review = reviewRepository.findById(id).orElse(null)
         return if (review?.status == Status.ACTIVE) review else null
     }
+
+    fun getActiveReviewsForSitemap(
+        page: Int,
+        size: Int,
+    ): Page<ReviewSitemapProjection> =
+        reviewRepository.findSitemapDataByStatus(
+            Status.ACTIVE,
+            PageRequest.of(page, size),
+        )
+
+    fun countActiveReviews(): Long = reviewRepository.countByStatus(Status.ACTIVE)
 }
