@@ -13,6 +13,7 @@ import org.mockito.BDDMockito.given
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.data.domain.PageImpl
+import org.springframework.http.HttpStatus
 
 @ExtendWith(MockitoExtension::class)
 class SitemapControllerTest {
@@ -79,6 +80,16 @@ class SitemapControllerTest {
         val body = controller.reviewsSitemap(0).body!!
 
         assertThat(body).doesNotContain("<loc>")
+    }
+
+    @Test
+    fun `reviews sitemap - page 음수이면 400 반환`() {
+        assertThat(controller.reviewsSitemap(-1).statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
+    }
+
+    @Test
+    fun `users sitemap - page 음수이면 400 반환`() {
+        assertThat(controller.usersSitemap(-1).statusCode).isEqualTo(HttpStatus.BAD_REQUEST)
     }
 
     @Test

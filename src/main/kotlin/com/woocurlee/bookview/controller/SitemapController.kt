@@ -46,6 +46,7 @@ class SitemapController(
     fun reviewsSitemap(
         @PathVariable page: Int,
     ): ResponseEntity<String> {
+        if (page < 0) return ResponseEntity.badRequest().build()
         val reviews = reviewService.getActiveReviewsForSitemap(page, pageSize)
         val sb = StringBuilder()
         sb.append("""<?xml version="1.0" encoding="UTF-8"?>""").append("\n")
@@ -70,6 +71,7 @@ class SitemapController(
     fun usersSitemap(
         @PathVariable page: Int,
     ): ResponseEntity<String> {
+        if (page < 0) return ResponseEntity.badRequest().build()
         val users = userService.getActiveUsersForSitemap(page, pageSize)
         val sb = StringBuilder()
         sb.append("""<?xml version="1.0" encoding="UTF-8"?>""").append("\n")
