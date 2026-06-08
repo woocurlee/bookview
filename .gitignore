@@ -47,5 +47,4 @@ out/
 .env.prod
 start.sh
 
-CLAUDE.md
 .env

@@ -44,3 +44,6 @@ jwt:
 kakao:
   api:
     key: ${KAKAO_API_KEY}
+
+app:
+  base-url: https://bookview.my

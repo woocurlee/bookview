@@ -4,3 +4,6 @@ spring:
 
   thymeleaf:
     cache: false # 개발 시 템플릿 자동 새로고침
+
+app:
+  base-url: http://localhost:8080

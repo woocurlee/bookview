@@ -19,4 +19,9 @@ interface UserRepository : MongoRepository<User, String> {
         nickname: String,
         status: Status,
     ): User?
+
+    fun findAllByIsNicknameSetAndStatus(
+        isNicknameSet: Boolean,
+        status: Status,
+    ): List<User>
 }

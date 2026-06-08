@@ -21,4 +21,6 @@ interface ReviewRepository : MongoRepository<Review, String> {
         status: Status,
         pageable: Pageable,
     ): Page<Review>
+
+    fun findAllByStatus(status: Status): List<Review>
 }

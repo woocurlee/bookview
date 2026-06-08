@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:fragment="head(title)">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +8,26 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png">
     <title th:text="${title}">BookView</title>
+
+    <!-- SEO -->
+    <meta name="description" th:content="${metaDescription ?: 'BookView - 책 리뷰를 공유하는 플랫폼. 내가 읽은 책의 감상을 기록하고, 다른 독자들의 리뷰를 발견하세요.'}">
+    <link th:if="${canonicalUrl != null}" rel="canonical" th:href="${canonicalUrl}">
+
+    <!-- Open Graph -->
+    <meta property="og:type" th:content="${ogType ?: 'website'}">
+    <meta property="og:site_name" content="BookView">
+    <meta property="og:locale" content="ko_KR">
+    <meta property="og:title" th:content="${title}">
+    <meta property="og:description" th:content="${metaDescription ?: 'BookView - 책 리뷰를 공유하는 플랫폼. 내가 읽은 책의 감상을 기록하고, 다른 독자들의 리뷰를 발견하세요.'}">
+    <meta property="og:image" th:content="${ogImage ?: (baseUrl + '/images/bookview-og.png')}">
+    <meta property="og:url" th:content="${canonicalUrl ?: baseUrl}">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" th:content="${title}">
+    <meta name="twitter:description" th:content="${metaDescription ?: 'BookView - 책 리뷰를 공유하는 플랫폼.'}">
+    <meta name="twitter:image" th:content="${ogImage ?: (baseUrl + '/images/bookview-og.png')}">
+
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 

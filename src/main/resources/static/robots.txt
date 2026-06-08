@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Allow: /r/
+Allow: /u/
+
+Disallow: /api/
+Disallow: /oauth2/
+Disallow: /setup-nickname
+Disallow: /write-review
+Disallow: /my-page
+Disallow: /login-error
+
+Sitemap: https://bookview.my/sitemap.xml
