@@ -71,6 +71,22 @@ class ViewControllerJsonLdTest {
     }
 
     @Test
+    fun `JSON-LD - script 종료 태그 포함 시 XSS 방지`() {
+        given(reviewService.getReviewByReviewNo(1L)).willReturn(
+            review(title = "</script><script>alert(1)</script>"),
+        )
+
+        val model = ExtendedModelMap()
+        controller.reviewDetail(1L, model, null)
+
+        val jsonLd = model["jsonLd"] as String
+        assertThat(jsonLd).doesNotContain("</script>")
+        assertThat(jsonLd).contains("\\u003c/script>")
+        // 이스케이프 후에도 유효한 JSON인지 확인
+        assertThat(objectMapper.readTree(jsonLd)).isNotNull()
+    }
+
+    @Test
     fun `JSON-LD - 따옴표 포함된 제목 이스케이프`() {
         given(reviewService.getReviewByReviewNo(1L)).willReturn(
             review(title = "\"작은따옴표\" 포함"),

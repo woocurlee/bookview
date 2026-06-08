@@ -201,29 +201,31 @@ class ViewController(
         model.addAttribute("canonicalUrl", "$baseUrl/r/${review.reviewNo}")
 
         // JSON-LD
+        // </script> 패턴으로 스크립트 블록 조기 종료를 막기 위해 < 를 < 로 이스케이프
         val jsonLd =
-            objectMapper.writeValueAsString(
-                mapOf(
-                    "@context" to "https://schema.org",
-                    "@type" to "Review",
-                    "name" to review.title,
-                    "reviewRating" to
-                        mapOf(
-                            "@type" to "Rating",
-                            "ratingValue" to review.rating,
-                            "bestRating" to 5,
-                            "worstRating" to 1,
-                        ),
-                    "author" to mapOf("@type" to "Person", "name" to (author?.nickname ?: "")),
-                    "itemReviewed" to
-                        mapOf(
-                            "@type" to "Book",
-                            "name" to review.bookTitle,
-                            "author" to mapOf("@type" to "Person", "name" to review.bookAuthor),
-                        ),
-                    "datePublished" to review.createdAt.toLocalDate().toString(),
-                ),
-            )
+            objectMapper
+                .writeValueAsString(
+                    mapOf(
+                        "@context" to "https://schema.org",
+                        "@type" to "Review",
+                        "name" to review.title,
+                        "reviewRating" to
+                            mapOf(
+                                "@type" to "Rating",
+                                "ratingValue" to review.rating,
+                                "bestRating" to 5,
+                                "worstRating" to 1,
+                            ),
+                        "author" to mapOf("@type" to "Person", "name" to (author?.nickname ?: "")),
+                        "itemReviewed" to
+                            mapOf(
+                                "@type" to "Book",
+                                "name" to review.bookTitle,
+                                "author" to mapOf("@type" to "Person", "name" to review.bookAuthor),
+                            ),
+                        "datePublished" to review.createdAt.toLocalDate().toString(),
+                    ),
+                ).replace("<", "\\u003c")
         model.addAttribute("jsonLd", jsonLd)
 
         // 좋아요 여부
