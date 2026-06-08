@@ -9,5 +9,6 @@ Disallow: /setup-nickname
 Disallow: /write-review
 Disallow: /my-page
 Disallow: /login-error
+Disallow: /r/*/edit
 
 Sitemap: https://bookview.my/sitemap.xml
