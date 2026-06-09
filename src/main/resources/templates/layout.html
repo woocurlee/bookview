@@ -29,6 +29,17 @@
     <meta name="twitter:image" th:content="${ogImage ?: (baseUrl + '/images/bookview-og.png')}">
 
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google tag (gtag.js) -->
+    <th:block th:if="${gaId != null}">
+        <script async th:src="'https://www.googletagmanager.com/gtag/js?id=' + ${gaId}"></script>
+        <script th:inline="javascript">
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', /*[[${gaId}]]*/ 'default');
+        </script>
+    </th:block>
 </head>
 
 <header th:fragment="header" class="bg-white shadow-md mb-8 relative z-30">
