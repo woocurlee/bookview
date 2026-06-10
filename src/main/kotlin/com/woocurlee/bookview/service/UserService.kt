@@ -4,6 +4,7 @@ import com.woocurlee.bookview.domain.Status
 import com.woocurlee.bookview.domain.User
 import com.woocurlee.bookview.dto.UserSitemapProjection
 import com.woocurlee.bookview.repository.UserRepository
+import java.time.LocalDateTime
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
@@ -57,7 +58,7 @@ class UserService(
             user.copy(
                 nickname = nickname,
                 isNicknameSet = true,
-                agreedToTermsAt = if (!user.isNicknameSet) java.time.LocalDateTime.now() else user.agreedToTermsAt,
+                agreedToTermsAt = if (!user.isNicknameSet) LocalDateTime.now() else user.agreedToTermsAt,
                 termsVersion = if (!user.isNicknameSet) termsVersion else user.termsVersion,
             )
         return userRepository.save(updated)

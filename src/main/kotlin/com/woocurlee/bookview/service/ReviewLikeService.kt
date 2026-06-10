@@ -57,6 +57,18 @@ class ReviewLikeService(
             .map { it.reviewId }
             .toSet()
 
+    /** googleId가 null이면 빈 Set 반환 (비로그인 사용자 처리용) */
+    fun getLikedReviewIdsOrEmpty(
+        reviewIds: List<String>,
+        googleId: String?,
+    ): Set<String> = if (googleId != null) getLikedReviewIds(reviewIds, googleId) else emptySet()
+
+    /** reviewId 또는 googleId가 null이면 false 반환 (비로그인 사용자 처리용) */
+    fun hasUserLikedOrFalse(
+        reviewId: String?,
+        googleId: String?,
+    ): Boolean = reviewId != null && googleId != null && hasUserLiked(reviewId, googleId)
+
     private fun incrementLikeCount(
         reviewId: String,
         delta: Int,

@@ -56,8 +56,18 @@
                         <img th:src="${review.bookThumbnail}"
                              alt="책 표지"
                              th:if="${review.bookThumbnail != null && !review.bookThumbnail.isEmpty()}"
+                             th:classappend="${review.status.name() == 'BLOCK'} ? 'opacity-40' : ''"
                              class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
-                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition-all duration-300 flex items-center justify-center">
+                        <!-- 차단 오버레이 (본인에게만 표시) -->
+                        <div th:if="${isOwner && review.status.name() == 'BLOCK'}"
+                             class="absolute inset-0 flex flex-col items-center justify-center bg-black/65 rounded-lg backdrop-blur-[1px]">
+                            <svg class="w-8 h-8 text-amber-400 mb-2" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25z"/>
+                            </svg>
+                            <span class="text-white text-sm font-semibold tracking-wide">차단된 글</span>
+                        </div>
+                        <div th:unless="${isOwner && review.status.name() == 'BLOCK'}"
+                             class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-60 transition-all duration-300 flex items-center justify-center">
                             <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-center p-4">
                                 <h3 class="text-white font-bold text-sm md:text-base mb-2" th:text="${review.title}">제목</h3>
                                 <div class="text-yellow-400 text-xs md:text-sm">
