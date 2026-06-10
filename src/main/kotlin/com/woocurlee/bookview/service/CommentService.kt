@@ -78,6 +78,23 @@ class CommentService(
         return toCommentResponse(savedComment)
     }
 
+    data class CommentTree(
+        val topLevelComments: List<CommentResponse>,
+        val repliesMap: Map<String, List<CommentResponse>>,
+        val count: Int,
+    )
+
+    fun getCommentTree(reviewId: String): CommentTree {
+        val comments = getCommentsByReviewId(reviewId)
+        val topLevel = comments.filter { it.parentId == null }
+        val replies = comments.filter { it.parentId != null }
+        return CommentTree(
+            topLevelComments = topLevel,
+            repliesMap = replies.groupBy { it.parentId!! },
+            count = comments.size,
+        )
+    }
+
     fun getCommentsByReviewId(reviewId: String): List<CommentResponse> {
         // 모든 댓글 조회 (삭제된 댓글 포함)
         val allComments =
