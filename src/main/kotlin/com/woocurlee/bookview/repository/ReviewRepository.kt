@@ -9,12 +9,12 @@ import org.springframework.data.mongodb.repository.MongoRepository
 import org.springframework.data.mongodb.repository.Query
 
 interface ReviewRepository : MongoRepository<Review, String> {
-    fun findByUserIdAndStatus(
+    fun findByUserIdAndStatusOrderByCreatedAtDesc(
         userId: String,
         status: Status,
     ): List<Review>
 
-    fun findByUserIdAndStatusIn(
+    fun findByUserIdAndStatusInOrderByCreatedAtDesc(
         userId: String,
         statuses: List<Status>,
     ): List<Review>

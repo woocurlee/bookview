@@ -39,11 +39,12 @@ class ReviewService(
     private val blockLogRepository: BlockLogRepository,
     private val userService: UserService,
 ) {
-    fun getReviewsByUserId(userId: String): List<Review> = reviewRepository.findByUserIdAndStatus(userId, Status.ACTIVE)
+    fun getReviewsByUserId(userId: String): List<Review> =
+        reviewRepository.findByUserIdAndStatusOrderByCreatedAtDesc(userId, Status.ACTIVE)
 
     /** 본인 마이페이지용: ACTIVE + BLOCK 리뷰 모두 반환 */
     fun getReviewsByUserIdIncludingBlocked(userId: String): List<Review> =
-        reviewRepository.findByUserIdAndStatusIn(userId, listOf(Status.ACTIVE, Status.BLOCK))
+        reviewRepository.findByUserIdAndStatusInOrderByCreatedAtDesc(userId, listOf(Status.ACTIVE, Status.BLOCK))
 
     /**
      * 리뷰 상세 조회. ACTIVE/BLOCK 모두 반환하며 소유권·차단 정보를 함께 제공한다.

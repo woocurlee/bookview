@@ -35,7 +35,7 @@ class UserPageService(
                 reviewService.getReviewsByUserIdIncludingBlocked(profileUser.googleId)
             } else {
                 reviewService.getReviewsByUserId(profileUser.googleId)
-            }.sortedByDescending { it.createdAt }
+            }
 
         val stats = reviewService.calculateStats(reviews)
         val likedReviewIds = reviewLikeService.getLikedReviewIdsOrEmpty(reviews.mapNotNull { it.id }, currentGoogleId)
