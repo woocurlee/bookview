@@ -1,9 +1,12 @@
 package com.woocurlee.bookview.service
 
 import com.woocurlee.bookview.common.SequenceNames
+import com.woocurlee.bookview.domain.BlockAction
 import com.woocurlee.bookview.domain.Review
 import com.woocurlee.bookview.domain.Status
+import com.woocurlee.bookview.domain.TargetType
 import com.woocurlee.bookview.dto.ReviewSitemapProjection
+import com.woocurlee.bookview.repository.BlockLogRepository
 import com.woocurlee.bookview.repository.ReviewRepository
 import com.woocurlee.bookview.util.HtmlSanitizer
 import java.time.LocalDateTime
@@ -12,12 +15,41 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
+data class BlockedReview(
+    val review: Review,
+    val blockReason: String?,
+)
+
 @Service
 class ReviewService(
     private val reviewRepository: ReviewRepository,
     private val sequenceService: SequenceService,
+    private val blockLogRepository: BlockLogRepository,
 ) {
     fun getReviewsByUserId(userId: String): List<Review> = reviewRepository.findByUserIdAndStatus(userId, Status.ACTIVE)
+
+    /** 본인 마이페이지용: ACTIVE + BLOCK 리뷰 모두 반환 */
+    fun getReviewsByUserIdIncludingBlocked(userId: String): List<Review> =
+        reviewRepository.findByUserIdAndStatusIn(userId, listOf(Status.ACTIVE, Status.BLOCK))
+
+    /** 리뷰 상세용: ACTIVE + BLOCK 조회 (DELETED 제외). 권한 체크는 컨트롤러에서 한다. */
+    fun getReviewByReviewNoIncludingBlocked(reviewNo: Long): BlockedReview? {
+        val review =
+            reviewRepository.findByReviewNoAndStatusIn(reviewNo, listOf(Status.ACTIVE, Status.BLOCK))
+                ?: return null
+        val blockReason =
+            if (review.status == Status.BLOCK && review.id != null) {
+                blockLogRepository
+                    .findFirstByTargetTypeAndTargetIdAndActionOrderByCreatedAtDesc(
+                        TargetType.REVIEW,
+                        review.id,
+                        BlockAction.BLOCK,
+                    )?.reason
+            } else {
+                null
+            }
+        return BlockedReview(review, blockReason)
+    }
 
     fun createReview(review: Review): Review {
         val reviewNo = sequenceService.getNextSequence(SequenceNames.REVIEW_SEQ)

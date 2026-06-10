@@ -53,6 +53,10 @@ Google OAuth2 로그인 → `CustomOAuth2UserService`에서 유저 생성/갱신
 - JavaScript: `resources/static/js/`, 공통 유틸리티는 `common.js` (`API` fetch 헬퍼, `Modal`, `Alert`, `Validator`)
 - 스타일링: Tailwind CSS CDN (`<script src="https://cdn.tailwindcss.com">`)
 
+## 작업 규칙
+
+- **컬렉션 스키마 변경 금지**: 도메인 모델(User, Review, Comment 등) 필드 추가/삭제/수정은 반드시 먼저 물어보고 진행한다. bookview-admin과 DB를 공유하기 때문에 스키마 변경은 양쪽 모두에 영향을 준다.
+
 ## 컨벤션
 
 - **커밋 메시지**: Gitmoji + Jira 티켓: `:sparkles: BKVW-8 : 설명`

@@ -142,7 +142,12 @@ class ViewController(
         model.addAttribute("profileUser", profileUser)
         model.addAttribute("isOwner", isOwner)
 
-        val reviews = reviewService.getReviewsByUserId(profileUser.googleId).sortedByDescending { it.createdAt }
+        val reviews =
+            if (isOwner) {
+                reviewService.getReviewsByUserIdIncludingBlocked(profileUser.googleId)
+            } else {
+                reviewService.getReviewsByUserId(profileUser.googleId)
+            }.sortedByDescending { it.createdAt }
         model.addAttribute("reviews", reviews)
 
         val avgRating = if (reviews.isEmpty()) 0.0 else reviews.map { it.rating }.average()
@@ -181,7 +186,24 @@ class ViewController(
             return "redirect:/setup-nickname"
         }
 
-        val review = reviewService.getReviewByReviewNo(reviewNo) ?: return "redirect:/"
+        val blockedReview = reviewService.getReviewByReviewNoIncludingBlocked(reviewNo) ?: return "redirect:/"
+        val review = blockedReview.review
+
+        val isOwner = user?.googleId == review.userId
+        if (review.status == com.woocurlee.bookview.domain.Status.BLOCK) {
+            if (!isOwner) {
+                model.addAttribute("status", 404)
+                model.addAttribute("message", "존재하지 않는 글입니다")
+                model.addAttribute("detail", "")
+                return "error"
+            }
+            model.addAttribute("isBlocked", true)
+            model.addAttribute("blockReason", blockedReview.blockReason)
+        } else {
+            model.addAttribute("isBlocked", false)
+            model.addAttribute("blockReason", null)
+        }
+
         model.addAttribute("review", review)
 
         // 작성자 정보

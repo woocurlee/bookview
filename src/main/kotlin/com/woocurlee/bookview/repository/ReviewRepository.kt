@@ -14,9 +14,19 @@ interface ReviewRepository : MongoRepository<Review, String> {
         status: Status,
     ): List<Review>
 
+    fun findByUserIdAndStatusIn(
+        userId: String,
+        statuses: List<Status>,
+    ): List<Review>
+
     fun findByReviewNoAndStatus(
         reviewNo: Long,
         status: Status,
+    ): Review?
+
+    fun findByReviewNoAndStatusIn(
+        reviewNo: Long,
+        statuses: List<Status>,
     ): Review?
 
     fun findByStatus(
