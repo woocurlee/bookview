@@ -7,7 +7,10 @@ import com.woocurlee.bookview.service.ReviewLikeService
 import com.woocurlee.bookview.service.ReviewService
 import com.woocurlee.bookview.service.UserPageService
 import com.woocurlee.bookview.service.UserService
+import com.woocurlee.bookview.util.HtmlSanitizer
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
@@ -40,12 +43,10 @@ class ViewController(
         }
 
         val pageable =
-            org.springframework.data.domain.PageRequest.of(
+            PageRequest.of(
                 0,
                 10,
-                org.springframework.data.domain.Sort
-                    .by("createdAt")
-                    .descending(),
+                Sort.by("createdAt").descending(),
             )
         val reviewsPage = reviewService.getReviews(pageable)
         model.addAttribute("reviews", reviewsPage.content)
@@ -161,12 +162,9 @@ class ViewController(
         model.addAttribute("seoTitle", "${detail.review.title} - ${detail.review.bookTitle} | BookView")
         model.addAttribute(
             "metaDescription",
-            "${detail.review.bookTitle} (${detail.review.bookAuthor}) 리뷰 - ${detail.review.content.let {
-                com.woocurlee.bookview.util.HtmlSanitizer
-                    .toPlainText(
-                        it,
-                    ).take(150)
-            }}",
+            "${detail.review.bookTitle} (${detail.review.bookAuthor}) 리뷰 - ${HtmlSanitizer.toPlainText(
+                detail.review.content,
+            ).take(150)}",
         )
         model.addAttribute(
             "ogImage",
