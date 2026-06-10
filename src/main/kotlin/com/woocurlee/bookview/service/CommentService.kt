@@ -86,8 +86,7 @@ class CommentService(
 
     fun getCommentTree(reviewId: String): CommentTree {
         val comments = getCommentsByReviewId(reviewId)
-        val topLevel = comments.filter { it.parentId == null }
-        val replies = comments.filter { it.parentId != null }
+        val (topLevel, replies) = comments.partition { it.parentId == null }
         return CommentTree(
             topLevelComments = topLevel,
             repliesMap = replies.groupBy { it.parentId!! },
