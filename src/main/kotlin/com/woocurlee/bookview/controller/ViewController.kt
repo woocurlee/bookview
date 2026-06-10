@@ -1,16 +1,18 @@
 package com.woocurlee.bookview.controller
 
+import com.woocurlee.bookview.dto.CommentResponse
 import com.woocurlee.bookview.service.CommentService
+import com.woocurlee.bookview.service.ReviewDetail
 import com.woocurlee.bookview.service.ReviewLikeService
 import com.woocurlee.bookview.service.ReviewService
+import com.woocurlee.bookview.service.UserPageService
 import com.woocurlee.bookview.service.UserService
-import org.jsoup.Jsoup
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import tools.jackson.databind.ObjectMapper
 
 @Controller
@@ -19,36 +21,24 @@ class ViewController(
     private val reviewService: ReviewService,
     private val reviewLikeService: ReviewLikeService,
     private val commentService: CommentService,
+    private val userPageService: UserPageService,
     private val objectMapper: ObjectMapper,
     @Value("\${app.base-url}") private val baseUrl: String,
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
-
-    private fun plainText(
-        html: String,
-        maxLength: Int = 150,
-    ): String {
-        val text = Jsoup.parse(html).text()
-        return if (text.length > maxLength) text.take(maxLength) + "…" else text
-    }
-
     @GetMapping("/")
     fun index(
         model: Model,
         @AuthenticationPrincipal principal: Any?,
     ): String {
-        // 로그인하지 않은 유저는 랜딩 페이지로
         if (principal == null || principal.toString() == "anonymousUser") {
             return "landing"
         }
 
-        // 닉네임 미설정 체크
         val user = addUserToModel(principal, userService, model)
         if (user != null && !user.isNicknameSet) {
             return "redirect:/setup-nickname"
         }
 
-        // 최근 리뷰 10개 추가 (페이징)
         val pageable =
             org.springframework.data.domain.PageRequest.of(
                 0,
@@ -62,14 +52,14 @@ class ViewController(
         model.addAttribute("hasMoreReviews", reviewsPage.hasNext())
         model.addAttribute("canonicalUrl", baseUrl)
 
-        // 좋아요 여부
-        if (user != null) {
-            val reviewIds = reviewsPage.content.mapNotNull { it.id }
-            val likedReviewIds = reviewLikeService.getLikedReviewIds(reviewIds, user.googleId)
-            model.addAttribute("likedReviewIds", likedReviewIds)
-        } else {
-            model.addAttribute("likedReviewIds", emptySet<String>())
-        }
+        val likedReviewIds =
+            reviewLikeService.getLikedReviewIdsOrEmpty(
+                reviewsPage.content.mapNotNull {
+                    it.id
+                },
+                user?.googleId,
+            )
+        model.addAttribute("likedReviewIds", likedReviewIds)
 
         return "index"
     }
@@ -79,16 +69,9 @@ class ViewController(
         model: Model,
         @AuthenticationPrincipal principal: Any?,
     ): String {
-        if (principal == null) {
-            return "redirect:/oauth2/authorization/google"
-        }
-
-        // 이미 닉네임이 설정된 경우 홈으로 리다이렉트
+        if (principal == null) return "redirect:/oauth2/authorization/google"
         val user = addUserToModel(principal, userService, model)
-        if (user != null && user.isNicknameSet) {
-            return "redirect:/"
-        }
-
+        if (user != null && user.isNicknameSet) return "redirect:/"
         return "setup-nickname"
     }
 
@@ -98,9 +81,7 @@ class ViewController(
         @AuthenticationPrincipal principal: Any?,
     ): String {
         val user = addUserToModel(principal, userService, model)
-        if (user != null && !user.isNicknameSet) {
-            return "redirect:/setup-nickname"
-        }
+        if (user != null && !user.isNicknameSet) return "redirect:/setup-nickname"
         return "write-review"
     }
 
@@ -108,9 +89,7 @@ class ViewController(
     fun myPage(
         @AuthenticationPrincipal principal: Any?,
     ): String {
-        if (principal == null) {
-            return "redirect:/oauth2/authorization/google"
-        }
+        if (principal == null) return "redirect:/oauth2/authorization/google"
         val attributes = principal as? Map<*, *>
         val googleId = attributes?.get("sub")?.toString() ?: return "redirect:/oauth2/authorization/google"
         val user = userService.findByGoogleId(googleId) ?: return "redirect:/oauth2/authorization/google"
@@ -120,172 +99,89 @@ class ViewController(
 
     @GetMapping("/u/{nickname}")
     fun userPage(
-        @org.springframework.web.bind.annotation.PathVariable nickname: String,
+        @PathVariable nickname: String,
         model: Model,
         @AuthenticationPrincipal principal: Any?,
     ): String {
-        val profileUser =
-            userService.findByNickname(nickname) ?: run {
+        val currentUser = addUserToModel(principal, userService, model)
+        if (currentUser != null && !currentUser.isNicknameSet) return "redirect:/setup-nickname"
+
+        val data =
+            userPageService.getUserPageData(nickname, currentUser?.googleId) ?: run {
                 model.addAttribute("status", 404)
                 model.addAttribute("message", "존재하지 않는 사용자입니다")
                 model.addAttribute("detail", "@$nickname 사용자를 찾을 수 없습니다.")
                 return "error"
             }
 
-        // 현재 로그인 유저 확인
-        val currentUser = addUserToModel(principal, userService, model)
-        if (currentUser != null && !currentUser.isNicknameSet) {
-            return "redirect:/setup-nickname"
-        }
-        val isOwner = currentUser?.googleId == profileUser.googleId
-
-        model.addAttribute("profileUser", profileUser)
-        model.addAttribute("isOwner", isOwner)
-
-        val reviews =
-            if (isOwner) {
-                reviewService.getReviewsByUserIdIncludingBlocked(profileUser.googleId)
-            } else {
-                reviewService.getReviewsByUserId(profileUser.googleId)
-            }.sortedByDescending { it.createdAt }
-        model.addAttribute("reviews", reviews)
-
-        val avgRating = if (reviews.isEmpty()) 0.0 else reviews.map { it.rating }.average()
-        model.addAttribute("avgRating", String.format("%.1f", avgRating))
-
-        val totalLikes = reviews.sumOf { it.likeCount }
-        model.addAttribute("totalLikes", totalLikes)
-
-        // SEO
+        model.addAttribute("profileUser", data.profileUser)
+        model.addAttribute("isOwner", data.isOwner)
+        model.addAttribute("reviews", data.reviews)
+        model.addAttribute("avgRating", data.stats.avgRating)
+        model.addAttribute("totalLikes", data.stats.totalLikes)
+        model.addAttribute("likedReviewIds", data.likedReviewIds)
         model.addAttribute(
             "metaDescription",
-            "${profileUser.nickname}의 BookView 프로필 - ${reviews.size}개의 리뷰, 평균 별점 ${String.format("%.1f", avgRating)}",
+            "${data.profileUser.nickname}의 BookView 프로필 - ${data.reviews.size}개의 리뷰, 평균 별점 ${data.stats.avgRating}",
         )
-        model.addAttribute("canonicalUrl", "$baseUrl/u/${profileUser.nickname}")
-
-        // 좋아요 여부
-        if (currentUser != null) {
-            val reviewIds = reviews.mapNotNull { it.id }
-            val likedReviewIds = reviewLikeService.getLikedReviewIds(reviewIds, currentUser.googleId)
-            model.addAttribute("likedReviewIds", likedReviewIds)
-        } else {
-            model.addAttribute("likedReviewIds", emptySet<String>())
-        }
-
+        model.addAttribute("canonicalUrl", "$baseUrl/u/${data.profileUser.nickname}")
         return "user-page"
     }
 
     @GetMapping("/r/{reviewNo}")
     fun reviewDetail(
-        @org.springframework.web.bind.annotation.PathVariable reviewNo: Long,
+        @PathVariable reviewNo: Long,
         model: Model,
         @AuthenticationPrincipal principal: Any?,
     ): String {
         val user = addUserToModel(principal, userService, model)
-        if (user != null && !user.isNicknameSet) {
-            return "redirect:/setup-nickname"
+        if (user != null && !user.isNicknameSet) return "redirect:/setup-nickname"
+
+        val detail = reviewService.getReviewDetail(reviewNo, user?.googleId) ?: return "redirect:/"
+        if (!detail.isAccessible) {
+            model.addAttribute("status", 404)
+            model.addAttribute("message", "존재하지 않는 글입니다")
+            model.addAttribute("detail", "")
+            return "error"
         }
 
-        val blockedReview = reviewService.getReviewByReviewNoIncludingBlocked(reviewNo) ?: return "redirect:/"
-        val review = blockedReview.review
+        val commentTree = detail.review.id?.let { commentService.getCommentTree(it) }
+        val hasLiked = reviewLikeService.hasUserLikedOrFalse(detail.review.id, user?.googleId)
 
-        val isOwner = user?.googleId == review.userId
-        if (review.status == com.woocurlee.bookview.domain.Status.BLOCK) {
-            if (!isOwner) {
-                model.addAttribute("status", 404)
-                model.addAttribute("message", "존재하지 않는 글입니다")
-                model.addAttribute("detail", "")
-                return "error"
-            }
-            model.addAttribute("isBlocked", true)
-            model.addAttribute("blockReason", blockedReview.blockReason)
-        } else {
-            model.addAttribute("isBlocked", false)
-            model.addAttribute("blockReason", null)
-        }
-
-        model.addAttribute("review", review)
-
-        // 작성자 정보
-        val author = userService.findByGoogleId(review.userId)
-        model.addAttribute("author", author)
+        model.addAttribute("review", detail.review)
+        model.addAttribute("author", detail.author)
+        model.addAttribute("isBlocked", detail.isBlocked)
+        model.addAttribute("blockReason", detail.blockReason)
+        model.addAttribute("hasLiked", hasLiked)
+        model.addAttribute("topLevelComments", commentTree?.topLevelComments ?: emptyList<CommentResponse>())
+        model.addAttribute("commentRepliesMap", commentTree?.repliesMap ?: emptyMap<String, List<CommentResponse>>())
+        model.addAttribute("commentCount", commentTree?.count ?: 0)
 
         // SEO
-        val seoTitle = "${review.title} - ${review.bookTitle} | BookView"
-        val contentPreview = plainText(review.content)
-        val description = "${review.bookTitle} (${review.bookAuthor}) 리뷰 - $contentPreview"
-        val ogImageUrl =
-            if (!review.bookThumbnail.isNullOrEmpty()) review.bookThumbnail else "$baseUrl/images/bookview-og.png"
-        model.addAttribute("seoTitle", seoTitle)
-        model.addAttribute("metaDescription", description)
-        model.addAttribute("ogImage", ogImageUrl)
+        model.addAttribute("seoTitle", "${detail.review.title} - ${detail.review.bookTitle} | BookView")
+        model.addAttribute(
+            "metaDescription",
+            "${detail.review.bookTitle} (${detail.review.bookAuthor}) 리뷰 - ${detail.review.content.let {
+                com.woocurlee.bookview.util.HtmlSanitizer
+                    .toPlainText(
+                        it,
+                    ).take(150)
+            }}",
+        )
+        model.addAttribute(
+            "ogImage",
+            detail.review.bookThumbnail?.takeIf { it.isNotEmpty() } ?: "$baseUrl/images/bookview-og.png",
+        )
         model.addAttribute("ogType", "article")
-        model.addAttribute("canonicalUrl", "$baseUrl/r/${review.reviewNo}")
-
-        // JSON-LD
-        // </script> 패턴으로 스크립트 블록 조기 종료를 막기 위해 < 를 < 로 이스케이프
-        val jsonLd =
-            objectMapper
-                .writeValueAsString(
-                    mapOf(
-                        "@context" to "https://schema.org",
-                        "@type" to "Review",
-                        "name" to review.title,
-                        "reviewRating" to
-                            mapOf(
-                                "@type" to "Rating",
-                                "ratingValue" to review.rating,
-                                "bestRating" to 5,
-                                "worstRating" to 1,
-                            ),
-                        "author" to mapOf("@type" to "Person", "name" to (author?.nickname ?: "")),
-                        "itemReviewed" to
-                            mapOf(
-                                "@type" to "Book",
-                                "name" to review.bookTitle,
-                                "author" to mapOf("@type" to "Person", "name" to review.bookAuthor),
-                            ),
-                        "datePublished" to review.createdAt.toLocalDate().toString(),
-                    ),
-                ).replace("<", "\\u003c")
-        model.addAttribute("jsonLd", jsonLd)
-
-        // 좋아요 여부
-        val hasLiked =
-            user != null &&
-                review.id != null &&
-                reviewLikeService.hasUserLiked(review.id, user.googleId)
-        model.addAttribute("hasLiked", hasLiked)
-
-        // 댓글 목록 (계층 구조)
-        if (review.id != null) {
-            val comments = commentService.getCommentsByReviewId(review.id)
-
-            // 최상위 댓글과 대댓글 분리
-            val topLevelComments = comments.filter { it.parentId == null }
-            val replies = comments.filter { it.parentId != null }
-
-            // 각 최상위 댓글에 대한 대댓글 매핑
-            val commentRepliesMap = replies.groupBy { it.parentId }
-
-            model.addAttribute("topLevelComments", topLevelComments)
-            model.addAttribute("commentRepliesMap", commentRepliesMap)
-            model.addAttribute("commentCount", comments.size)
-        } else {
-            model.addAttribute("topLevelComments", emptyList<com.woocurlee.bookview.dto.CommentResponse>())
-            model.addAttribute(
-                "commentRepliesMap",
-                emptyMap<String, List<com.woocurlee.bookview.dto.CommentResponse>>(),
-            )
-            model.addAttribute("commentCount", 0)
-        }
+        model.addAttribute("canonicalUrl", "$baseUrl/r/${detail.review.reviewNo}")
+        model.addAttribute("jsonLd", buildJsonLd(detail))
 
         return "review-detail"
     }
 
     @GetMapping("/r/{reviewNo}/edit")
     fun editReview(
-        @org.springframework.web.bind.annotation.PathVariable reviewNo: Long,
+        @PathVariable reviewNo: Long,
         model: Model,
         @AuthenticationPrincipal principal: Any?,
     ): String {
@@ -294,18 +190,13 @@ class ViewController(
         }
 
         val user = addUserToModel(principal, userService, model)
-        if (user != null && !user.isNicknameSet) {
-            return "redirect:/setup-nickname"
-        }
+        if (user != null && !user.isNicknameSet) return "redirect:/setup-nickname"
 
         val review = reviewService.getReviewByReviewNo(reviewNo) ?: return "redirect:/"
 
-        // 본인 리뷰가 아니면 상세 페이지로
         val attributes = principal as? Map<*, *>
         val googleId = attributes?.get("sub")?.toString()
-        if (googleId != review.userId) {
-            return "redirect:/r/$reviewNo"
-        }
+        if (googleId != review.userId) return "redirect:/r/$reviewNo"
 
         model.addAttribute("review", review)
         return "write-review"
@@ -324,4 +215,35 @@ class ViewController(
 
     @GetMapping("/terms-of-service")
     fun termsOfService(): String = "redirect:/terms-of-service.html"
+
+    private fun buildJsonLd(detail: ReviewDetail): String {
+        val jsonLd =
+            objectMapper
+                .writeValueAsString(
+                    mapOf(
+                        "@context" to "https://schema.org",
+                        "@type" to "Review",
+                        "name" to detail.review.title,
+                        "reviewRating" to
+                            mapOf(
+                                "@type" to "Rating",
+                                "ratingValue" to detail.review.rating,
+                                "bestRating" to 5,
+                                "worstRating" to 1,
+                            ),
+                        "author" to mapOf("@type" to "Person", "name" to (detail.author?.nickname ?: "")),
+                        "itemReviewed" to
+                            mapOf(
+                                "@type" to "Book",
+                                "name" to detail.review.bookTitle,
+                                "author" to mapOf("@type" to "Person", "name" to detail.review.bookAuthor),
+                            ),
+                        "datePublished" to
+                            detail.review.createdAt
+                                .toLocalDate()
+                                .toString(),
+                    ),
+                ).replace("<", "\\u003c")
+        return jsonLd
+    }
 }
