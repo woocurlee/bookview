@@ -81,7 +81,7 @@ class ReviewService(
 
     /** 리뷰 목록의 평균 별점·총 좋아요 수를 계산한다. */
     fun calculateStats(reviews: List<Review>): ReviewStats {
-        val avg = if (reviews.isEmpty()) 0.0 else reviews.map { it.rating }.average()
+        val avg = if (reviews.isEmpty()) 0.0 else reviews.sumOf { it.rating }.toDouble() / reviews.size
         return ReviewStats(
             avgRating = String.format("%.1f", avg),
             totalLikes = reviews.sumOf { it.likeCount },
