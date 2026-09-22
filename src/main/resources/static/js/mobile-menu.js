@@ -19,3 +19,20 @@ function openLogoutModal() {
 function closeLogoutModal() {
     document.getElementById('logoutModal').classList.add('hidden');
 }
+
+document.addEventListener('click', (event) => {
+    const trigger = event.target.closest('[data-action]');
+    if (!trigger) return;
+
+    switch (trigger.dataset.action) {
+        case 'menu-toggle':
+            toggleMobileMenu();
+            break;
+        case 'menu-logout-open':
+            openLogoutModal();
+            break;
+        case 'menu-logout-close':
+            closeLogoutModal();
+            break;
+    }
+});

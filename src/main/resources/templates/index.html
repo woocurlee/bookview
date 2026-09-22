@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:replace="~{layout :: head('BookView - 책 리뷰 플랫폼')}"></head>
-<body class="bg-gradient-to-br from-stone-100 to-stone-50 min-h-screen mb-10">
+<body class="bg-gradient-to-br from-stone-100 to-stone-50 min-h-screen mb-10" th:data-has-more="${hasMoreReviews}">
 <header th:replace="~{layout :: header}"></header>
 
 <div class="max-w-7xl mx-auto px-5">
     <!-- 리뷰 작성 유도 박스 -->
-    <div th:if="${user != null}"
-         onclick="goToWriteReview()"
-         class="bg-white rounded-xl p-5 mb-8 shadow-md flex gap-4 items-center cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg">
+    <a th:if="${user != null}"
+       href="/write-review"
+       class="bg-white rounded-xl p-5 mb-8 shadow-md flex gap-4 items-center cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg no-underline">
         <img src="/images/default-avatar.svg" alt="프로필" class="hidden sm:block w-12 h-12 rounded-full object-cover flex-shrink-0">
         <div class="flex-1 py-3 px-5 bg-stone-100 rounded-full text-stone-400 text-base">오늘 읽은 책에 대한 생각을 공유해보세요...</div>
-    </div>
+    </a>
 
     <!-- 최근 리뷰 섹션 -->
     <section th:if="${reviews != null && !reviews.isEmpty()}">
@@ -19,7 +19,7 @@
             <a th:href="@{/r/{reviewNo}(reviewNo=${review.reviewNo})}" class="block no-underline">
                 <div class="bg-white rounded-xl p-5 mb-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md duration-200 flex flex-col sm:flex-row gap-4 sm:gap-5 cursor-pointer">
                 <img th:src="${@coverImage.hiRes(review.bookThumbnail)}"
-                     th:attr="onerror=|this.onerror=null;this.src='${review.bookThumbnail}'|"
+                     th:data-fallback="${review.bookThumbnail}"
                      th:alt="${review.bookTitle + ' 표지'}"
                      th:if="${review.bookThumbnail != null && !review.bookThumbnail.isEmpty()}"
                      class="w-full h-36 sm:w-auto sm:h-48 object-cover rounded-lg sm:flex-shrink-0">
@@ -71,10 +71,6 @@
 <footer th:replace="~{layout :: footer}"></footer>
 
 <script src="/js/common.js"></script>
-<script>
-    // hasMore 초기값 설정
-    hasMore = /*[[${hasMoreReviews}]]*/ true;
-</script>
 <script src="/js/index.js"></script>
 <script th:replace="~{layout :: mobileMenuScript}"></script>
 </body>

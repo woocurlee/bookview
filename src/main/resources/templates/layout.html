@@ -29,23 +29,20 @@
     <meta name="twitter:image" th:content="${ogImage ?: (baseUrl + '/images/bookview-og.png')}">
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 표지 이미지보다 먼저 폴백 리스너를 등록해야 하므로 head에서 로드 -->
+    <script src="/js/cover-fallback.js"></script>
 
     <!-- Google tag (gtag.js) -->
     <th:block th:if="${gaId != null}">
         <script async th:src="'https://www.googletagmanager.com/gtag/js?id=' + ${gaId}"></script>
-        <script th:inline="javascript">
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', /*[[${gaId}]]*/ 'default');
-        </script>
+        <script src="/js/analytics.js" th:data-ga-id="${gaId}"></script>
     </th:block>
 </head>
 
 <header th:fragment="header" class="bg-white shadow-md mb-8 relative z-30">
     <div class="max-w-7xl mx-auto px-5 py-5">
         <div class="flex justify-between items-center">
-            <button onclick="toggleMobileMenu()" aria-label="메뉴 열기" class="lg:hidden text-3xl text-stone-900 focus:outline-none z-50 relative">
+            <button data-action="menu-toggle" aria-label="메뉴 열기" class="lg:hidden text-3xl text-stone-900 focus:outline-none z-50 relative">
                 ☰
             </button>
             <a href="/" class="no-underline lg:block absolute left-1/2 transform -translate-x-1/2 lg:static lg:transform-none">
@@ -61,7 +58,7 @@
                             <img src="/images/default-avatar.svg" th:alt="${user.nickname + '의 프로필 사진'}" class="w-9 h-9 rounded-full ">
                             <span th:text="${user.nickname}" class="font-semibold text-stone-700">사용자</span>
                         </a>
-                        <button onclick="openLogoutModal()" class="px-5 py-2.5 text-stone-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all font-semibold">
+                        <button data-action="menu-logout-open" class="px-5 py-2.5 text-stone-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all font-semibold">
                             로그아웃
                         </button>
                     </div>
@@ -81,10 +78,10 @@
             <div class="w-8 lg:hidden"></div>
         </div>
     </div>
-    <div id="mobileMenuOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onclick="toggleMobileMenu()"></div>
+    <div id="mobileMenuOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" data-action="menu-toggle"></div>
     <div id="mobileMenu" class="fixed top-0 left-0 h-full w-[85vw] sm:w-80 bg-white shadow-xl transform -translate-x-full transition-transform duration-300 z-50 lg:hidden flex flex-col">
         <div class="p-6 flex flex-col gap-4 flex-1">
-            <button onclick="toggleMobileMenu()" class="self-end text-3xl text-gray-500 hover:text-gray-700">×</button>
+            <button data-action="menu-toggle" class="self-end text-3xl text-gray-500 hover:text-gray-700">×</button>
             <div th:if="${user != null}">
                 <div class="flex items-center gap-3 pb-4 border-b border-gray-200">
                     <img src="/images/default-avatar.svg" alt="프로필" class="w-12 h-12 rounded-full">
@@ -99,7 +96,7 @@
         </div>
         <!-- 로그아웃 버튼 (하단 고정) -->
         <div th:if="${user != null}" class="p-6 border-t border-gray-200">
-            <button onclick="openLogoutModal()" class="w-full block py-4 px-4 text-center text-red-600 hover:bg-red-50 rounded-md font-semibold">🚪 로그아웃</button>
+            <button data-action="menu-logout-open" class="w-full block py-4 px-4 text-center text-red-600 hover:bg-red-50 rounded-md font-semibold">🚪 로그아웃</button>
         </div>
     </div>
 
@@ -109,7 +106,7 @@
             <h2 class="text-2xl font-bold text-gray-800 mb-4">로그아웃</h2>
             <p class="text-gray-600 mb-6">정말 로그아웃 하시겠습니까?</p>
             <div class="flex gap-3">
-                <button onclick="closeLogoutModal()" class="flex-1 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-semibold">
+                <button data-action="menu-logout-close" class="flex-1 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-semibold">
                     취소
                 </button>
                 <a href="/logout" class="flex-1 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-semibold text-center">
