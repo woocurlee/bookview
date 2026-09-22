@@ -33,14 +33,19 @@ function hiResCover(url) {
     }
 }
 
+function escapeAttr(value) {
+    return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;');
+}
+
 /**
- * 고화질 표지 <img> 태그 문자열 생성 (실패 시 원본 썸네일로 폴백)
+ * 고화질 표지 <img> 태그 문자열 생성.
+ * 로드 실패 시 폴백은 cover-fallback.js가 data-fallback을 보고 처리한다.
  */
 function coverImgTag(url, className, alt) {
-    const safeAlt = String(alt || '책 표지').replace(/"/g, '&quot;');
-    const orig = (url || '').replace(/'/g, '%27');
-    return `<img src="${hiResCover(url)}" alt="${safeAlt}" class="${className || ''}"` +
-        ` onerror="this.onerror=null;this.src='${orig}'">`;
+    return `<img src="${escapeAttr(hiResCover(url))}" data-fallback="${escapeAttr(url)}"` +
+        ` alt="${escapeAttr(alt || '책 표지')}" class="${escapeAttr(className)}">`;
 }
 
 /**

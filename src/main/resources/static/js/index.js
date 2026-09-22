@@ -1,10 +1,6 @@
 let currentPage = 1;
 let isLoading = false;
-let hasMore = true;
-
-function goToWriteReview() {
-    window.location.href = '/write-review';
-}
+let hasMore = document.body.dataset.hasMore !== 'false';
 
 function searchBooks() {
     const query = document.getElementById('searchInput').value.trim();

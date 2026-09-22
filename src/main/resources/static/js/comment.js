@@ -106,6 +106,26 @@ async function deleteComment(button) {
     }
 }
 
+document.addEventListener('click', (event) => {
+    const trigger = event.target.closest('[data-action]');
+    if (!trigger) return;
+
+    switch (trigger.dataset.action) {
+        case 'comment-submit':
+            submitComment();
+            break;
+        case 'comment-reply-toggle':
+            toggleReplyForm(trigger);
+            break;
+        case 'reply-submit':
+            submitReply(trigger);
+            break;
+        case 'comment-delete':
+            deleteComment(trigger);
+            break;
+    }
+});
+
 // 글자 수 카운터
 document.addEventListener('DOMContentLoaded', () => {
     const commentInput = document.getElementById('commentInput');

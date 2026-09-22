@@ -2,6 +2,7 @@ package com.woocurlee.bookview.controller
 
 import com.woocurlee.bookview.domain.Review
 import com.woocurlee.bookview.service.CommentService
+import com.woocurlee.bookview.service.ReviewDetail
 import com.woocurlee.bookview.service.ReviewLikeService
 import com.woocurlee.bookview.service.ReviewService
 import com.woocurlee.bookview.service.UserPageService
@@ -47,7 +48,7 @@ class ViewControllerJsonLdTest {
 
     @Test
     fun `JSON-LD - 올바른 스키마 구조 생성`() {
-        given(reviewService.getReviewByReviewNo(1L)).willReturn(review())
+        given(reviewService.getReviewDetail(1L, null)).willReturn(detail())
 
         val model = ExtendedModelMap()
         controller.reviewDetail(1L, model, null)
@@ -61,8 +62,8 @@ class ViewControllerJsonLdTest {
 
     @Test
     fun `JSON-LD - 탭과 줄바꿈 등 제어 문자 올바르게 이스케이프`() {
-        given(reviewService.getReviewByReviewNo(1L)).willReturn(
-            review(title = "제목\t탭\n줄바꿈"),
+        given(reviewService.getReviewDetail(1L, null)).willReturn(
+            detail(title = "제목\t탭\n줄바꿈"),
         )
 
         val model = ExtendedModelMap()
@@ -76,8 +77,8 @@ class ViewControllerJsonLdTest {
 
     @Test
     fun `JSON-LD - script 종료 태그 포함 시 XSS 방지`() {
-        given(reviewService.getReviewByReviewNo(1L)).willReturn(
-            review(title = "</script><script>alert(1)</script>"),
+        given(reviewService.getReviewDetail(1L, null)).willReturn(
+            detail(title = "</script><script>alert(1)</script>"),
         )
 
         val model = ExtendedModelMap()
@@ -92,8 +93,8 @@ class ViewControllerJsonLdTest {
 
     @Test
     fun `JSON-LD - 따옴표 포함된 제목 이스케이프`() {
-        given(reviewService.getReviewByReviewNo(1L)).willReturn(
-            review(title = "\"작은따옴표\" 포함"),
+        given(reviewService.getReviewDetail(1L, null)).willReturn(
+            detail(title = "\"작은따옴표\" 포함"),
         )
 
         val model = ExtendedModelMap()
@@ -105,6 +106,15 @@ class ViewControllerJsonLdTest {
         val parsed = objectMapper.readValue(jsonLd, Map::class.java) as Map<String, Any>
         assertThat(parsed["name"]).isEqualTo("\"작은따옴표\" 포함")
     }
+
+    private fun detail(title: String = "리뷰 제목") =
+        ReviewDetail(
+            review = review(title = title),
+            author = null,
+            isBlocked = false,
+            blockReason = null,
+            isOwner = false,
+        )
 
     private fun review(
         title: String = "리뷰 제목",

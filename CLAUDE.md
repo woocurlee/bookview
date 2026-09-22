@@ -52,6 +52,7 @@ Google OAuth2 로그인 → `CustomOAuth2UserService`에서 유저 생성/갱신
 - Thymeleaf 템플릿: `resources/templates/`, 공유 레이아웃은 `layout.html` (header, footer, 모바일 메뉴 fragment)
 - JavaScript: `resources/static/js/`, 공통 유틸리티는 `common.js` (`API` fetch 헬퍼, `Modal`, `Alert`, `Validator`)
 - 스타일링: Tailwind CSS CDN (`<script src="https://cdn.tailwindcss.com">`)
+- **인라인 스크립트·이벤트 핸들러 금지**: CSP `script-src`에 `'unsafe-inline'`이 없어 인라인 `<script>`와 `onclick=`/`onerror=` 같은 속성은 브라우저가 실행을 차단한다. 이벤트는 `data-action` 속성 + `addEventListener`로 연결하고, 서버 값은 `data-*` 속성이나 `<script type="application/json">` 데이터 아일랜드로 전달한다. 자세한 내용은 `XSS_DEFENSE_GUIDE.md` 참고.
 
 ## 작업 규칙
 

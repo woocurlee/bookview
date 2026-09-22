@@ -31,3 +31,20 @@ async function saveProfile() {
 document.addEventListener('DOMContentLoaded', () => {
     Modal.setupOutsideClick('editModal');
 });
+
+document.addEventListener('click', (event) => {
+    const trigger = event.target.closest('[data-action]');
+    if (!trigger) return;
+
+    switch (trigger.dataset.action) {
+        case 'profile-edit-open':
+            openEditModal();
+            break;
+        case 'profile-edit-close':
+            closeEditModal();
+            break;
+        case 'profile-save':
+            saveProfile();
+            break;
+    }
+});
