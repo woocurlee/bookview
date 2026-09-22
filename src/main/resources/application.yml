@@ -11,3 +11,13 @@ spring:
 
 app:
   base-url: http://localhost:8080
+  rate-limit:
+    review-create:
+      limit: 5
+      window: 10m
+    review-update:
+      limit: 10
+      window: 1m
+    comment-create:
+      limit: 5
+      window: 1m

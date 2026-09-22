@@ -3,6 +3,8 @@ package com.woocurlee.bookview.controller
 import com.woocurlee.bookview.domain.Review
 import com.woocurlee.bookview.dto.CreateReviewRequest
 import com.woocurlee.bookview.dto.UpdateReviewRequest
+import com.woocurlee.bookview.ratelimit.RateLimited
+import com.woocurlee.bookview.ratelimit.WriteAction
 import com.woocurlee.bookview.service.CommentService
 import com.woocurlee.bookview.service.ReviewService
 import org.springframework.data.domain.PageRequest
@@ -43,6 +45,7 @@ class ReviewController(
     }
 
     @PostMapping
+    @RateLimited(WriteAction.REVIEW_CREATE)
     fun createReview(
         @RequestBody request: CreateReviewRequest,
         @AuthenticationPrincipal principal: Any,
@@ -65,6 +68,7 @@ class ReviewController(
     }
 
     @PutMapping("/{id}")
+    @RateLimited(WriteAction.REVIEW_UPDATE)
     fun updateReview(
         @PathVariable id: String,
         @RequestBody request: UpdateReviewRequest,
