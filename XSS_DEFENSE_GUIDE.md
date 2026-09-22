@@ -38,68 +38,28 @@ implementation("org.jsoup:jsoup:1.17.2")
 ```
 
 #### HtmlSanitizer.kt
-```kotlin
-object HtmlSanitizer {
-    private val safelist = Safelist.relaxed()
-        .addTags("h1", "h2", "h3", "h4", "h5", "h6")
-        .addAttributes("p", "class")
-        .addAttributes("span", "class")
-        .addProtocols("a", "href", "http", "https", "mailto")
 
-    fun sanitize(html: String?): String {
-        if (html.isNullOrBlank()) return ""
-        return Jsoup.clean(html, safelist)
-    }
+> ⚠️ 허용 태그·속성 목록은 코드가 바뀔 때마다 갱신되므로 이 문서에 스니펫을 복사하지 않는다.
+> 정본은 [`src/main/kotlin/com/woocurlee/bookview/util/HtmlSanitizer.kt`](src/main/kotlin/com/woocurlee/bookview/util/HtmlSanitizer.kt) 참고.
 
-    fun toPlainText(html: String?): String {
-        if (html.isNullOrBlank()) return ""
-        return Jsoup.parse(html).text()
-    }
-}
-```
+`Safelist.relaxed()`를 기반으로 아래와 같이 확장/제한한다 (자세한 값은 코드 참고):
+- 허용 태그 추가: 제목(`h1`~`h6`), 취소선(`s`)
+- 허용 속성 추가: `p`/`span`의 `class`
+- 허용 프로토콜 제한: `a[href]`는 `http`/`https`/`mailto`만, `img[src]`는 `http`/`https`만 (`javascript:`, `data:` 등 차단)
 
-**허용되는 태그:**
-- 텍스트: `<p>`, `<strong>`, `<em>`, `<u>`, `<strike>`
-- 제목: `<h1>` ~ `<h6>`
-- 리스트: `<ul>`, `<ol>`, `<li>`
-- 링크: `<a href="...">`
-- 인용: `<blockquote>`
-- 코드: `<code>`, `<pre>`
-
-**차단되는 태그:**
+**차단되는 태그/속성 (기본 Safelist 정책):**
 - `<script>` - JavaScript 실행
 - `<iframe>` - 외부 사이트 임베드
 - `<object>`, `<embed>` - 플러그인 실행
 - `onclick`, `onerror` 등 이벤트 핸들러
 
-### 2. **ReviewService 수정**
+### 2. **ReviewService 새니타이즈 적용**
 
-```kotlin
-fun createReview(review: Review): Review {
-    val reviewNo = sequenceService.getNextSequence(SequenceNames.REVIEW_SEQ)
-    
-    // XSS 방지: 저장 전 새니타이즈
-    val sanitizedReview = review.copy(
-        reviewNo = reviewNo,
-        title = HtmlSanitizer.toPlainText(review.title),      // HTML 제거
-        content = HtmlSanitizer.sanitize(review.content),     // 안전한 HTML만 허용
-        quote = HtmlSanitizer.toPlainText(review.quote)       // HTML 제거
-    )
-    
-    return reviewRepository.save(sanitizedReview)
-}
+> 정본은 [`src/main/kotlin/com/woocurlee/bookview/service/ReviewService.kt`](src/main/kotlin/com/woocurlee/bookview/service/ReviewService.kt)의 `createReview`, `updateReview` 참고.
 
-fun updateReview(...): Review? {
-    // 수정 시에도 동일하게 새니타이즈
-    val updated = review.copy(
-        title = HtmlSanitizer.toPlainText(title),
-        content = HtmlSanitizer.sanitize(content),
-        quote = HtmlSanitizer.toPlainText(quote),
-        ...
-    )
-    return reviewRepository.save(updated)
-}
-```
+- `title`, `quote`: `HtmlSanitizer.toPlainText()`로 HTML 전부 제거
+- `content`: `HtmlSanitizer.sanitize()`로 허용된 태그만 유지
+- 생성/수정 모두 저장 직전(save 호출 전)에 새니타이즈하여, DB에는 항상 안전한 값만 저장됨
 
 ---
 
@@ -139,50 +99,16 @@ fun updateReview(...): Review? {
 | `<script>alert('XSS')</script>` | (제거됨) | 스크립트 차단 |
 | `<img src=x onerror=alert('XSS')>` | `<img src="x">` | 이벤트 핸들러 제거 |
 | `<a href="javascript:alert('XSS')">Click</a>` | `<a>Click</a>` | javascript: 프로토콜 차단 |
+| `<img src="javascript:alert('XSS')">` | `<img>` | javascript: 프로토콜 차단 |
 | `<p onclick="alert('XSS')">Text</p>` | `<p>Text</p>` | onclick 제거 |
 | `<iframe src="https://evil.com"></iframe>` | (제거됨) | iframe 차단 |
 | `<strong>Bold</strong>` | `<strong>Bold</strong>` | ✅ 안전한 태그 허용 |
 
 ---
 
-## 📋 체크리스트
+## 📋 진행 현황
 
-### ✅ **완료된 보안 조치**
-- [x] jsoup 의존성 추가
-- [x] HtmlSanitizer 유틸리티 생성
-- [x] ReviewService에 새니타이즈 로직 추가
-- [x] createReview에 적용
-- [x] updateReview에 적용
-- [x] UpdateReviewRequest에 quote 추가
-- [x] ReviewController 수정
-
-### ⚠️ **추가 권장 사항**
-
-1. **CSP (Content Security Policy) 헤더 추가**
-```kotlin
-// SecurityConfig.kt
-http.headers { headers ->
-    headers.contentSecurityPolicy { csp ->
-        csp.policyDirectives("default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.quilljs.com https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.quilljs.com;")
-    }
-}
-```
-
-2. **HttpOnly 쿠키 설정 확인**
-```yaml
-# application.yml
-server:
-  servlet:
-    session:
-      cookie:
-        http-only: true
-        secure: true  # HTTPS 환경에서
-```
-
-3. **Rate Limiting 추가**
-```kotlin
-// 리뷰 작성/수정 횟수 제한 (DoS 방지)
-```
+보안 조치 항목별 완료 여부는 문서가 아닌 Jira에서 관리한다 (문서 드리프트 방지).
 
 ---
 
@@ -215,4 +141,4 @@ reviewRepository.save(sanitized)
 - ✅ 사용자 입력은 절대 신뢰하지 않는다
 - ✅ 서버에서 검증/새니타이즈
 - ✅ 다층 방어 전략
-- ✅ 정기적인 보안 감사
+- ✅ 허용 태그·속성 목록의 정본은 코드(`HtmlSanitizer.kt`)이며, 이 문서는 스니펫을 복사하지 않는다
