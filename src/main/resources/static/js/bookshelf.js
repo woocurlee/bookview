@@ -42,10 +42,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderShelf();
     window.addEventListener('resize', bsOnResize);
+    bindShelfControls();
 
     // 저장/수정/삭제 후 리로드해도 '읽은 책' 탭에 머물도록 복원
     if (location.hash === '#shelf') switchBookshelfTab('shelf');
 });
+
+function bindShelfControls() {
+    const search = document.getElementById('bsBookSearch');
+    if (search) {
+        search.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter') return;
+            event.preventDefault();
+            bsSearchBooks();
+        });
+    }
+
+    document.addEventListener('click', (event) => {
+        const trigger = event.target.closest('[data-action]');
+        if (!trigger) return;
+
+        switch (trigger.dataset.action) {
+            case 'bs-tab':
+                switchBookshelfTab(trigger.dataset.tab);
+                break;
+            case 'bs-view':
+                setShelfView(trigger.dataset.view);
+                break;
+            case 'bs-month':
+                bookshelfChangeMonth(Number(trigger.dataset.delta));
+                break;
+            case 'bs-add-open':
+                openAddBookModal();
+                break;
+            case 'bs-add-close':
+                closeAddBookModal();
+                break;
+            case 'bs-search':
+                bsSearchBooks();
+                break;
+            case 'bs-clear-selection':
+                bsClearSelection();
+                break;
+            case 'bs-submit':
+                bsSubmitEntry();
+                break;
+            case 'bs-detail-close':
+                closeEntryDetailModal();
+                break;
+            case 'bs-entry-delete':
+                bsDeleteEntry();
+                break;
+            case 'bs-entry-save':
+                bsSaveEntryEdit();
+                break;
+            case 'bs-day-close':
+                closeDayModal();
+                break;
+        }
+    });
+}
 
 function bsOnResize() {
     clearTimeout(bsResizeTimer);

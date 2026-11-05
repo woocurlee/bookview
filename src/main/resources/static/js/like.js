@@ -1,3 +1,10 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const likeButton = document.getElementById('likeButton');
+    if (likeButton) {
+        likeButton.addEventListener('click', () => toggleLike(likeButton));
+    }
+});
+
 async function toggleLike(buttonElement) {
     const reviewNo = buttonElement.dataset.reviewNo;
     const isLoggedIn = buttonElement.dataset.loggedIn === 'true';

@@ -1,0 +1,37 @@
+# 테스트 전용 설정. 외부 연동 없이 스프링 컨텍스트가 뜨기만 하면 되므로 값은 모두 더미다.
+# (main의 application.yml은 테스트 클래스패스에서 이 파일에 가려지므로 필요한 키를 모두 담는다)
+spring:
+  application:
+    name: bookview
+
+  mongodb:
+    uri: mongodb://localhost:27017
+    database: bookview-test
+
+  data:
+    mongodb:
+      auto-index-creation: false # 컨텍스트 로딩만 검증하므로 실제 DB 연결이 필요 없도록 비활성화
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: test-client-id
+            client-secret: test-client-secret
+            scope:
+              - profile
+              - email
+
+jwt:
+  secret: test-jwt-secret-for-context-loading-only-do-not-use
+  expiration: 86400000
+
+kakao:
+  api:
+    key: test
+  mock:
+    enabled: true
+
+app:
+  base-url: http://localhost:8080

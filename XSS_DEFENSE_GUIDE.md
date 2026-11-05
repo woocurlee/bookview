@@ -61,6 +61,23 @@ implementation("org.jsoup:jsoup:1.17.2")
 - `content`: `HtmlSanitizer.sanitize()`로 허용된 태그만 유지
 - 생성/수정 모두 저장 직전(save 호출 전)에 새니타이즈하여, DB에는 항상 안전한 값만 저장됨
 
+### 3. **Content-Security-Policy 응답 헤더 (2차 방어선)**
+
+> 정본은 [`src/main/kotlin/com/woocurlee/bookview/config/SecurityConfig.kt`](src/main/kotlin/com/woocurlee/bookview/config/SecurityConfig.kt)의 `contentSecurityPolicy` 참고.
+
+새니타이저 허용 목록에 구멍이 생기거나 다른 경로로 스크립트가 주입되더라도 브라우저가 실행 자체를 막도록, 모든 응답에 CSP 헤더를 내려준다.
+
+- `script-src`: `'self'`와 실제로 쓰는 CDN(Tailwind, GA, TipTap)만 허용하며 **`'unsafe-inline'`이 없다**. 주입된 인라인 `<script>`나 `onerror=` 같은 이벤트 핸들러는 실행되지 않고, 허용 목록에 없는 외부 도메인에서 스크립트를 불러오는 것도 차단된다.
+- `object-src 'none'`, `base-uri 'self'`, `form-action 'self'`, `frame-ancestors 'none'`으로 플러그인 실행·base 태그 변조·클릭재킹을 함께 막는다.
+- `style-src`에는 `'unsafe-inline'`이 남아 있다. Tailwind를 CDN 런타임으로 쓰는 동안은 제거할 수 없다(스타일 인라인은 코드 실행이 불가능해 위험도가 낮다).
+
+**프론트엔드 작업 시 지켜야 할 제약** — 아래를 어기면 해당 기능이 조용히 동작하지 않는다:
+- 인라인 `<script>`를 쓰지 않는다. 스크립트는 `static/js/` 아래 파일로 두고 `src`로 불러온다.
+- `onclick=`, `onerror=` 같은 HTML 이벤트 핸들러 속성을 쓰지 않는다. `data-action` 속성을 붙이고 JS에서 `addEventListener`로 연결한다.
+- 서버 값은 `data-*` 속성이나 `<script type="application/json">` 데이터 아일랜드로 전달한다(JSON 블록은 실행 대상이 아니라 CSP 영향을 받지 않는다).
+- 이미지 로드 실패 폴백은 `data-fallback` 속성 + `static/js/cover-fallback.js`를 사용한다.
+- `href="javascript:..."` 링크를 쓰지 않는다.
+
 ---
 
 ## 🔍 보안 레이어
@@ -85,6 +102,11 @@ implementation("org.jsoup:jsoup:1.17.2")
     ↓
 ┌─────────────────────────────────┐
 │ 4. 렌더링 (th:utext)            │  ← 안전한 HTML만 존재
+└─────────────────────────────────┘
+    ↓
+┌─────────────────────────────────┐
+│ 5. 브라우저 CSP 헤더            │  ← 앞 단계가 뚫려도 실행 차단
+│    (SecurityConfig)             │
 └─────────────────────────────────┘
 ```
 
@@ -141,4 +163,5 @@ reviewRepository.save(sanitized)
 - ✅ 사용자 입력은 절대 신뢰하지 않는다
 - ✅ 서버에서 검증/새니타이즈
 - ✅ 다층 방어 전략
+- ✅ 템플릿에 인라인 스크립트·이벤트 핸들러를 넣지 않는다 (CSP `script-src`가 차단)
 - ✅ 허용 태그·속성 목록의 정본은 코드(`HtmlSanitizer.kt`)이며, 이 문서는 스니펫을 복사하지 않는다

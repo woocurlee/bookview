@@ -1,6 +1,10 @@
 // 리뷰 작성 페이지 스크립트
 // 에디터(TipTap)는 write-review.html의 모듈 스크립트에서 초기화되며 window.reviewEditor로 접근한다.
 
+// 편집 모드 데이터 (작성 모드에서는 #reviewEditData가 렌더링되지 않음)
+const editData = document.getElementById('reviewEditData');
+const isEditMode = editData !== null;
+
 let selectedRating = 0;
 let selectedBook = null;
 let currentBookPage = 1;
@@ -34,14 +38,17 @@ function setupInfiniteScroll() {
 
 document.addEventListener('DOMContentLoaded', function() {
     setupQuoteCounter();
+    setupRatingStars();
+    setupActionButtons();
 
     // 편집 모드인 경우
-    if (typeof isEditMode !== 'undefined' && isEditMode) {
+    if (isEditMode) {
         // 별점 초기화
-        selectedRating = initialRating;
-        updateStars(initialRating);
+        selectedRating = Number(editData.dataset.rating);
+        updateStars(selectedRating);
 
         // 에디터 초기 컨텐츠 설정 (TipTap, 모듈 스크립트에서 window.reviewEditor 준비됨)
+        const initialContent = editData.dataset.content;
         if (initialContent && window.reviewEditor) {
             window.reviewEditor.setContent(initialContent);
         }
@@ -69,6 +76,48 @@ document.addEventListener('DOMContentLoaded', function() {
         Modal.setupOutsideClick('bookModal');
     }
 });
+
+// 별점 이벤트 (mouseenter는 버블링되지 않아 컨테이너에서 mouseover로 위임)
+function setupRatingStars() {
+    const ratingEl = document.getElementById('rating');
+
+    ratingEl.addEventListener('click', (event) => {
+        const star = event.target.closest('.star');
+        if (star) setRating(Number(star.dataset.rating));
+    });
+
+    ratingEl.addEventListener('mouseover', (event) => {
+        const star = event.target.closest('.star');
+        if (star) hoverRating(Number(star.dataset.rating));
+    });
+
+    ratingEl.addEventListener('mouseleave', resetHover);
+}
+
+function setupActionButtons() {
+    document.addEventListener('click', (event) => {
+        const trigger = event.target.closest('[data-action]');
+        if (!trigger) return;
+
+        switch (trigger.dataset.action) {
+            case 'go-back':
+                history.back();
+                break;
+            case 'review-submit':
+                submitReview();
+                break;
+            case 'book-modal-open':
+                openBookModal();
+                break;
+            case 'book-modal-close':
+                closeBookModal();
+                break;
+            case 'book-search':
+                searchBooks();
+                break;
+        }
+    });
+}
 
 // 별점 설정
 function setRating(rating) {
@@ -119,13 +168,6 @@ function closeBookModal() {
     currentBookQuery = '';
     hasMoreBooks = true;
     isLoadingBooks = false;
-}
-
-// 모달 바깥 클릭 시 닫기
-function handleModalClick(event) {
-    if (event.target.id === 'bookModal') {
-        closeBookModal();
-    }
 }
 
 // 책 검색 (무한 스크롤 지원)
@@ -257,7 +299,7 @@ async function submitReview() {
     try {
         if (isEditMode) {
             // 편집 모드: PUT 요청
-            await API.put(`/api/reviews/${reviewId}`, {
+            await API.put(`/api/reviews/${editData.dataset.reviewId}`, {
                 title: title,
                 rating: selectedRating,
                 quote: quote,
@@ -265,7 +307,7 @@ async function submitReview() {
             });
 
             Alert.success('리뷰가 수정되었습니다!');
-            window.location.replace(`/r/${reviewNo}`);
+            window.location.replace(`/r/${editData.dataset.reviewNo}`);
         } else {
             // 작성 모드: POST 요청
             await API.post('/api/reviews', {
