@@ -145,15 +145,15 @@ function readTag(entry) {
     return total >= 1 ? `${total + 1}번째 읽는 중` : null;
 }
 
-// 책등/정면책처럼 공간이 좁은 곳에 쓰는 축약형 ("×2" / "재독")
-function readTagCompact(entry) {
+// 책장 표지 하단 띠에 쓰는 축약형 ("2회독" / "3회독 중"). 첫 독서는 표시하지 않으므로 null.
+function readBand(entry) {
     if (!entry.bookIsbn) return null;
     if (entry.finishedAt) {
         const n = bsReadOrder.orderMap[entry.id];
-        return (n && n >= 2) ? `×${n}` : null;
+        return (n && n >= 2) ? `${n}회독` : null;
     }
     const total = bsReadOrder.countByIsbn[entry.bookIsbn] || 0;
-    return total >= 1 ? '재독' : null;
+    return total >= 1 ? `${total + 1}회독 중` : null;
 }
 
 // 서버 응답(BookshelfEntry) → 클라이언트 표시용 항목
@@ -365,10 +365,8 @@ function setShelfView(view) {
 
 // ── 책 시각 속성 (책 id 시드로 고정: 새로고침해도 안 변함) ──
 const BS_FILLS = ['f-terra', 'f-ochre', 'f-sage', 'f-teal', 'f-cream', 'f-clay', 'f-plum', 'f-denim', 'f-olive', 'f-rust'];
-const BS_WIDTHS = ['k-s', 'k-m', 'k-l', 'k-xl'];
-const BS_HEIGHTS = ['h-a', 'h-b', 'h-c', 'h-d'];
-const BS_MOTIFS = ['d-band', 'd-dot', 'd-tick', ''];
-const BS_WIDTH_PX = { 'k-s': 26, 'k-m': 34, 'k-l': 43, 'k-xl': 52 };
+const BS_MOSAIC_MAX = 4; // 달력 한 칸에 보여주는 표지 수
+const BS_BOOK_SLOT_PX = 80; // 책장에서 책 한 권이 차지하는 폭 (책 74 + 좌우 여백 3*2)
 
 function bsHash(str) {
     let h = 2166136261;
@@ -379,15 +377,50 @@ function bsHash(str) {
     return h >>> 0;
 }
 
-function bookStyle(entry) {
+function bookFill(entry) {
     const key = String(entry.id || entry.bookIsbn || entry.bookTitle || '');
-    const h = bsHash(key);
-    return {
-        fill: BS_FILLS[h % BS_FILLS.length],
-        width: BS_WIDTHS[(h >>> 3) % BS_WIDTHS.length],
-        height: BS_HEIGHTS[(h >>> 7) % BS_HEIGHTS.length],
-        motif: BS_MOTIFS[(h >>> 11) % BS_MOTIFS.length],
+    return BS_FILLS[bsHash(key) % BS_FILLS.length];
+}
+
+function hasCover(entry) {
+    return Boolean(entry.bookThumbnail);
+}
+
+// 고화질 → 원본 썸네일 순으로 시도하고, 둘 다 실패하면 onFail을 호출한다.
+function loadCover(img, url, onFail) {
+    const hiRes = hiResCover(url);
+    let triedOriginal = false;
+    img.onerror = () => {
+        if (!triedOriginal && hiRes !== url) {
+            triedOriginal = true;
+            img.src = url;
+            return;
+        }
+        img.onerror = null;
+        onFail();
     };
+    img.src = hiRes;
+}
+
+// 색 일러스트 위에 표지 레이어를 덮는다. 로드에 실패하면 레이어만 걷어내 일러스트로 돌아간다.
+function attachCover(el, entry, onFail) {
+    if (!hasCover(entry)) return;
+    const layer = document.createElement('span');
+    layer.className = 'bs-cover';
+    const img = document.createElement('img');
+    img.alt = ''; // 책 제목은 부모의 title/본문으로 이미 제공
+    img.decoding = 'async';
+    layer.appendChild(img);
+    // 표지가 잘리지 않도록 실제 비율을 CSS에 넘겨 책 크기를 맞춘다.
+    img.onload = () => el.style.setProperty('--cover-ratio', img.naturalWidth / img.naturalHeight);
+    el.classList.add('has-cover');
+    el.prepend(layer);
+    loadCover(img, entry.bookThumbnail, () => {
+        layer.remove();
+        el.classList.remove('has-cover');
+        el.style.removeProperty('--cover-ratio');
+        if (onFail) onFail();
+    });
 }
 
 // ── 읽는 중 스트립 (미니 정면 책) ──
@@ -403,11 +436,12 @@ function renderReadingStrip() {
     bsReading.forEach(entry => {
         const el = document.createElement('button');
         el.type = 'button';
-        el.className = 'bs-mini-faced ' + bookStyle(entry).fill;
+        el.className = 'bs-mini-faced ' + bookFill(entry);
         const tag = readTag(entry);
         el.title = tag ? `${entry.bookTitle} · ${tag}` : entry.bookTitle; // 터치 기기는 title 툴팁이 안 뜨므로, 재독 정보는 상세 모달에서도 확인 가능
         el.onclick = () => openEntryDetail(entry);
         el.innerHTML = `<span class="mk"></span><span class="mm">${escapeHtml(entry.bookTitle)}</span>`;
+        attachCover(el, entry);
         list.appendChild(el);
     });
 }
@@ -451,24 +485,65 @@ function dayCell(day, entries) {
             ? `${entries.length}권 완독`
             : (soloTag ? `${entries[0].bookTitle} · ${soloTag}` : entries[0].bookTitle);
 
-        const mini = document.createElement('span');
-        mini.className = 'mini ' + bookStyle(entries[0]).fill;
-        if (entries.length > 1) {
-            const plus = document.createElement('span');
-            plus.className = 'plus';
-            plus.textContent = '+' + (entries.length - 1);
-            mini.appendChild(plus); // 책 모서리에 부착 (날짜 숫자와 충돌 방지)
+        if (entries.slice(0, BS_MOSAIC_MAX).some(hasCover)) {
+            fillCellCovers(cell, entries);
+        } else {
+            fillCellMono(cell, entries);
         }
-        cell.appendChild(mini);
-
-        const bt = document.createElement('span');
-        bt.className = 'bt';
-        bt.textContent = entries[0].bookTitle;
-        cell.appendChild(bt);
 
         cell.onclick = entries.length > 1 ? () => openDayModal(entries) : () => openEntryDetail(entries[0]);
     }
     return cell;
+}
+
+function fillCellMono(cell, entries) {
+    const mini = document.createElement('span');
+    mini.className = 'mini ' + bookFill(entries[0]);
+    if (entries.length > 1) {
+        const plus = document.createElement('span');
+        plus.className = 'plus';
+        plus.textContent = '+' + (entries.length - 1);
+        mini.appendChild(plus); // 책 모서리에 부착 (날짜 숫자와 충돌 방지)
+    }
+    cell.appendChild(mini);
+
+    const bt = document.createElement('span');
+    bt.className = 'bt';
+    bt.textContent = entries[0].bookTitle;
+    cell.appendChild(bt);
+}
+
+// 표지 모자이크: 1권은 칸 전체, 2권은 좌우 분할, 3권 이상은 2×2 (최대 4장) + 완독 권수 배지
+function fillCellCovers(cell, entries) {
+    const shown = entries.slice(0, BS_MOSAIC_MAX);
+    const mosaic = document.createElement('span');
+    mosaic.className = `bs-mosaic n${Math.min(shown.length, 3)}`;
+
+    const count = document.createElement('span');
+    count.className = 'bs-count';
+    count.textContent = entries.length;
+
+    // 표지가 하나도 안 뜨면 색 타일만 남으므로 칸 전체를 일러스트로 되돌린다.
+    let remaining = shown.filter(hasCover).length;
+    const onCoverFail = () => {
+        remaining -= 1;
+        if (remaining > 0) return;
+        cell.classList.remove('cover-cell');
+        mosaic.remove();
+        count.remove();
+        fillCellMono(cell, entries);
+    };
+
+    shown.forEach(entry => {
+        const tile = document.createElement('span');
+        tile.className = 'bs-tile ' + bookFill(entry);
+        attachCover(tile, entry, onCoverFail);
+        mosaic.appendChild(tile);
+    });
+
+    cell.classList.add('cover-cell');
+    cell.appendChild(mosaic);
+    if (entries.length > 1) cell.appendChild(count);
 }
 
 // ── 책장 뷰 (연도별 그룹, 여러 단으로 wrap) ──
@@ -482,7 +557,7 @@ function renderShelfView() {
 
     if (bsReading.length > 0) {
         renderShelfSection(host, { label: '읽는 중', now: true, count: bsReading.length },
-            bsReading, { allFaced: true, plant: true }, innerW);
+            bsReading, { plant: true }, innerW);
     }
 
     const byYear = {};
@@ -493,11 +568,11 @@ function renderShelfView() {
     Object.keys(byYear).sort((a, b) => b.localeCompare(a)).forEach(year => {
         const list = byYear[year];
         renderShelfSection(host, { label: year, count: list.length },
-            list, { facedId: list[0] && list[0].id }, innerW);
+            list, {}, innerW);
     });
 }
 
-// 한 그룹을 라벨 + 여러 선반 줄로 렌더 (책 너비 합으로 줄바꿈)
+// 한 그룹을 라벨 + 여러 선반 줄로 렌더 (책 칸 너비 합으로 줄바꿈)
 function renderShelfSection(host, meta, entries, opts, innerW) {
     const wrap = document.createElement('div');
     wrap.className = 'bs-shelf';
@@ -507,11 +582,7 @@ function renderShelfSection(host, meta, entries, opts, innerW) {
     label.innerHTML = `${escapeHtml(meta.label)} <span class="n">${meta.now ? meta.count + '권' : '· ' + meta.count}</span>`;
     wrap.appendChild(label);
 
-    const items = entries.map(e => {
-        const faced = Boolean(opts.allFaced || (opts.facedId && e.id === opts.facedId));
-        const w = (faced ? 74 : (BS_WIDTH_PX[bookStyle(e).width] || 34)) + 4; // +border
-        return { entry: e, faced, w };
-    });
+    const items = entries.map(entry => ({ entry, w: BS_BOOK_SLOT_PX }));
     if (opts.plant) items.push({ plant: true, w: 54 });
 
     const gap = 7;
@@ -522,7 +593,7 @@ function renderShelfSection(host, meta, entries, opts, innerW) {
         const books = document.createElement('div');
         books.className = 'bs-books';
         row.forEach(it => {
-            books.appendChild(it.plant ? makePlant() : (it.faced ? makeFaced(it.entry) : makeSpine(it.entry)));
+            books.appendChild(it.plant ? makePlant() : makeFaced(it.entry));
         });
         wrap.appendChild(books);
         const plank = document.createElement('div');
@@ -542,35 +613,17 @@ function renderShelfSection(host, meta, entries, opts, innerW) {
     host.appendChild(wrap);
 }
 
-function makeSpine(entry) {
-    const s = bookStyle(entry);
-    const el = document.createElement('button');
-    el.type = 'button';
-    el.className = ['bs-book', s.width, s.height, s.fill, s.motif].filter(Boolean).join(' ');
-    const tagFull = readTag(entry);
-    el.title = tagFull ? `${entry.bookTitle} · ${tagFull}` : entry.bookTitle;
-    if (s.width === 'k-m' || s.width === 'k-l' || s.width === 'k-xl') {
-        el.innerHTML = `<span class="cap"><span>${escapeHtml(entry.bookTitle)}</span></span>`;
-    }
-    // 폭이 가장 좁은 k-s는 배지를 얹을 공간이 없어 생략
-    if (s.width !== 'k-s') {
-        const tag = readTagCompact(entry);
-        if (tag) el.insertAdjacentHTML('beforeend', `<span class="reread">${escapeHtml(tag)}</span>`);
-    }
-    el.onclick = () => openEntryDetail(entry);
-    return el;
-}
-
 function makeFaced(entry) {
     const el = document.createElement('button');
     el.type = 'button';
-    el.className = 'bs-bkf ' + bookStyle(entry).fill;
+    el.className = 'bs-bkf ' + bookFill(entry);
     const tagFull = readTag(entry);
     el.title = tagFull ? `${entry.bookTitle} · ${tagFull}` : entry.bookTitle;
     const mark = entry.finishedAt ? '' : '<span class="mark"></span>';
-    const tag = readTagCompact(entry);
-    const badge = tag ? `<span class="reread">${escapeHtml(tag)}</span>` : '';
+    const band = readBand(entry);
+    const badge = band ? `<span class="reread">${escapeHtml(band)}</span>` : '';
     el.innerHTML = `${mark}${badge}<span class="ct">${escapeHtml(entry.bookTitle)}</span><span class="ca">${escapeHtml(entry.bookAuthor)}</span>`;
+    attachCover(el, entry);
     el.onclick = () => openEntryDetail(entry);
     return el;
 }
