@@ -213,14 +213,14 @@
                     </div>
                     <button type="button" data-action="bs-clear-selection" class="text-amber-600 text-sm hover:underline whitespace-nowrap">변경</button>
                 </div>
-                <div class="grid grid-cols-2 gap-3 mb-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
                     <div>
                         <label class="block mb-1 text-sm font-semibold text-stone-700">시작일 <span class="text-stone-400 font-normal">(선택)</span></label>
-                        <input id="bsStartedAt" type="date" class="w-full p-3 border-2 border-stone-300 rounded-lg focus:outline-none focus:border-amber-500">
+                        <input id="bsStartedAt" type="date" class="block w-full min-w-0 min-h-[44px] appearance-none bg-white px-2 py-2 sm:p-3 border-2 border-stone-300 rounded-lg focus:outline-none focus:border-amber-500">
                     </div>
                     <div>
                         <label class="block mb-1 text-sm font-semibold text-stone-700">완독일</label>
-                        <input id="bsFinishedAt" type="date" class="w-full p-3 border-2 border-stone-300 rounded-lg focus:outline-none focus:border-amber-500">
+                        <input id="bsFinishedAt" type="date" class="block w-full min-w-0 min-h-[44px] appearance-none bg-white px-2 py-2 sm:p-3 border-2 border-stone-300 rounded-lg focus:outline-none focus:border-amber-500">
                     </div>
                 </div>
                 <p class="text-xs text-stone-500 mb-4">완독일을 비워두면 "읽는 중"으로 표시됩니다.</p>
@@ -247,14 +247,14 @@
 
             <!-- 소유자: 편집 -->
             <div id="edOwnerControls" class="hidden">
-                <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                     <div>
                         <label class="block mb-1 text-sm font-semibold text-stone-700">시작일</label>
-                        <input id="edStartedAt" type="date" class="w-full p-3 border-2 border-stone-300 rounded-lg focus:outline-none focus:border-amber-500">
+                        <input id="edStartedAt" type="date" class="block w-full min-w-0 min-h-[44px] appearance-none bg-white px-2 py-2 sm:p-3 border-2 border-stone-300 rounded-lg focus:outline-none focus:border-amber-500">
                     </div>
                     <div>
                         <label class="block mb-1 text-sm font-semibold text-stone-700">완독일</label>
-                        <input id="edFinishedAt" type="date" class="w-full p-3 border-2 border-stone-300 rounded-lg focus:outline-none focus:border-amber-500">
+                        <input id="edFinishedAt" type="date" class="block w-full min-w-0 min-h-[44px] appearance-none bg-white px-2 py-2 sm:p-3 border-2 border-stone-300 rounded-lg focus:outline-none focus:border-amber-500">
                     </div>
                 </div>
                 <div class="flex gap-3">
