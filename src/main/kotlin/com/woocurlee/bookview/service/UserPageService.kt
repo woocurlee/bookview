@@ -2,6 +2,7 @@ package com.woocurlee.bookview.service
 
 import com.woocurlee.bookview.domain.Review
 import com.woocurlee.bookview.domain.User
+import com.woocurlee.bookview.dto.ReadingStats
 import org.springframework.stereotype.Service
 
 data class UserPageData(
@@ -11,6 +12,7 @@ data class UserPageData(
     val stats: ReviewStats,
     val likedReviewIds: Set<String>,
     val bookshelf: BookshelfData,
+    val readingStats: ReadingStats,
 )
 
 @Service
@@ -50,6 +52,7 @@ class UserPageService(
             stats = stats,
             likedReviewIds = likedReviewIds,
             bookshelf = bookshelf,
+            readingStats = bookshelfService.calculateReadingStats(bookshelf.finished),
         )
     }
 }

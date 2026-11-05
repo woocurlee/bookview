@@ -25,6 +25,31 @@
 #panelShelf .bs-add { appearance: none; border: none; cursor: pointer; font: inherit; font-weight: 700; font-size: 0.875rem; background: var(--bs-accent); color: #fff; padding: 9px 16px; border-radius: 8px; white-space: nowrap; transition: background 0.15s; }
 #panelShelf .bs-add:hover { background: var(--bs-accent-strong); }
 
+/* ── 독서 통계 ── */
+#panelShelf .bs-stats { background: var(--paper); border: 1px solid var(--cal-line); border-radius: 16px; padding: 18px 20px; margin-bottom: 20px; }
+#panelShelf .bs-stats.hidden { display: none; }
+#panelShelf .bs-stats-title { font-size: 1rem; font-weight: 800; color: #292524; margin: 0 0 12px; }
+#panelShelf .bs-stats-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+#panelShelf .bs-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; background: var(--cal-cell); border: 1px solid var(--cal-line); border-radius: 12px; padding: 10px 6px; }
+#panelShelf .bs-stat-num { font-size: 1.375rem; font-weight: 800; color: var(--bs-accent-strong); line-height: 1.2; white-space: nowrap; }
+#panelShelf .bs-stat-label { font-size: 12px; font-weight: 700; color: var(--cal-ink); }
+#panelShelf .bs-stats-sub { font-size: 12px; font-weight: 800; color: var(--edge); margin: 16px 0 8px; }
+#panelShelf .bs-chart { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; }
+#panelShelf .bs-chart-col { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; }
+#panelShelf .bs-chart-count { font-size: 11px; font-weight: 800; line-height: 14px; color: var(--cal-ink); }
+#panelShelf .bs-chart-track { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; width: 100%; max-width: 28px; height: 88px; border-bottom: 2px solid var(--cal-line); }
+#panelShelf .bs-chart-bar { width: 100%; height: calc(var(--ratio, 0) * 72px); background: var(--wood-1); border-radius: 4px 4px 0 0; }
+#panelShelf .bs-chart-col.current .bs-chart-bar { background: var(--bs-accent); }
+#panelShelf .bs-chart-label { font-size: 10px; color: var(--cal-ink); white-space: nowrap; }
+#panelShelf .bs-chart-col.current .bs-chart-label { font-weight: 800; color: var(--bs-accent-strong); }
+#panelShelf .bs-years { display: flex; flex-wrap: wrap; gap: 6px; }
+#panelShelf .bs-year { font-size: 12px; font-weight: 700; color: var(--cal-ink); background: var(--cal-cell); border: 1px solid var(--cal-line); border-radius: 999px; padding: 4px 10px; }
+@media (max-width: 480px) {
+  #panelShelf .bs-stats { padding: 14px; }
+  #panelShelf .bs-stat-num { font-size: 1.125rem; }
+  #panelShelf .bs-chart-unit { display: none; }
+}
+
 /* ── 공통 따뜻한 배경 ── */
 #panelShelf .bs-scene { position: relative; border-radius: 16px; overflow: hidden; padding: 20px;
   background: radial-gradient(120% 90% at 85% 0%, var(--scene-glow), transparent 55%), linear-gradient(var(--scene-1), var(--scene-2)); }

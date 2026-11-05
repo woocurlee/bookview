@@ -3,12 +3,23 @@ package com.woocurlee.bookview.service
 import com.woocurlee.bookview.domain.BookshelfEntry
 import com.woocurlee.bookview.domain.Status
 import com.woocurlee.bookview.dto.AddBookshelfEntryRequest
+import com.woocurlee.bookview.dto.MonthlyReadCount
+import com.woocurlee.bookview.dto.ReadingStats
 import com.woocurlee.bookview.dto.UpdateBookshelfEntryRequest
+import com.woocurlee.bookview.dto.YearlyReadCount
 import com.woocurlee.bookview.repository.BookshelfRepository
 import com.woocurlee.bookview.util.HtmlSanitizer
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.YearMonth
+import java.time.ZoneId
 import org.springframework.stereotype.Service
+
+/** 통계의 '이번 달' 기준 시간대. 서버 시간대와 무관하게 한국 날짜로 판단한다. */
+private val STATS_ZONE: ZoneId = ZoneId.of("Asia/Seoul")
+
+/** 월별 추이에 보여줄 개월 수 */
+private const val TREND_MONTHS = 12L
 
 /**
  * 유저 책장 데이터.
@@ -31,6 +42,35 @@ class BookshelfService(
         return BookshelfData(
             reading = reading.sortedByDescending { it.startedAt ?: LocalDate.MIN },
             finished = finished.sortedByDescending { it.finishedAt },
+        )
+    }
+
+    /** 유저의 독서 통계를 조회한다. */
+    fun getReadingStats(userId: String): ReadingStats = calculateReadingStats(getBookshelf(userId).finished)
+
+    /** 완독 항목을 완독일 기준으로 월별·연도별 집계한다. */
+    fun calculateReadingStats(
+        finished: List<BookshelfEntry>,
+        today: LocalDate = LocalDate.now(STATS_ZONE),
+    ): ReadingStats {
+        val finishedDates = finished.mapNotNull { it.finishedAt }
+        val countByMonth = finishedDates.groupingBy { YearMonth.from(it) }.eachCount()
+        val countByYear = finishedDates.groupingBy { it.year }.eachCount()
+        val thisMonth = YearMonth.from(today)
+
+        return ReadingStats(
+            thisMonthCount = countByMonth[thisMonth] ?: 0,
+            thisYearCount = countByYear[today.year] ?: 0,
+            totalCount = finishedDates.size,
+            monthly =
+                (TREND_MONTHS - 1 downTo 0).map { monthsAgo ->
+                    val month = thisMonth.minusMonths(monthsAgo)
+                    MonthlyReadCount(month.year, month.monthValue, countByMonth[month] ?: 0)
+                },
+            yearly =
+                countByYear
+                    .toSortedMap(reverseOrder())
+                    .map { (year, count) -> YearlyReadCount(year, count) },
         )
     }
 
