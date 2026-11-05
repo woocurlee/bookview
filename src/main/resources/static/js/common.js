@@ -98,13 +98,11 @@ const API = {
             });
 
             if (!response.ok) {
-                // 에러 응답도 JSON이 아닐 수 있음
-                try {
-                    const error = await response.json();
-                    throw new Error(error.message || '요청에 실패했습니다.');
-                } catch {
-                    throw new Error('요청에 실패했습니다.');
-                }
+                const body = await response.json().catch(() => null);
+                const error = new Error(body?.message || '요청에 실패했습니다.');
+                error.status = response.status;
+                error.retryAfterSeconds = Number(response.headers.get('Retry-After')) || 0;
+                throw error;
             }
 
             // DELETE 요청이나 204 No Content 응답은 본문이 없음

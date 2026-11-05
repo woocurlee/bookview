@@ -2,6 +2,8 @@ package com.woocurlee.bookview.controller
 
 import com.woocurlee.bookview.dto.CommentResponse
 import com.woocurlee.bookview.dto.CreateCommentRequest
+import com.woocurlee.bookview.ratelimit.RateLimited
+import com.woocurlee.bookview.ratelimit.WriteAction
 import com.woocurlee.bookview.service.CommentService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -20,6 +22,7 @@ class CommentController(
     private val commentService: CommentService,
 ) {
     @PostMapping
+    @RateLimited(WriteAction.COMMENT_CREATE)
     fun createComment(
         @RequestBody request: CreateCommentRequest,
         @AuthenticationPrincipal principal: Any,

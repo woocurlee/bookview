@@ -325,6 +325,6 @@ async function submitReview() {
             window.location.replace('/');
         }
     } catch (error) {
-        Alert.error(isEditMode ? '리뷰 수정에 실패했습니다.' : '리뷰 등록에 실패했습니다.');
+        Alert.error(error.message || (isEditMode ? '리뷰 수정에 실패했습니다.' : '리뷰 등록에 실패했습니다.'));
     }
 }
