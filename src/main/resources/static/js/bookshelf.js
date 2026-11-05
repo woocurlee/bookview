@@ -40,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     Modal.setupOutsideClick('entryDetailModal');
     Modal.setupOutsideClick('dayBooksModal');
 
+    renderReadingStats(parseDataIsland('readingStatsData'));
     renderShelf();
     window.addEventListener('resize', bsOnResize);
     bindShelfControls();
@@ -243,6 +244,83 @@ function setTabActive(btnId, active) {
     btn.classList.toggle('border-amber-500', active);
     btn.classList.toggle('text-stone-400', !active);
     btn.classList.toggle('border-transparent', !active);
+}
+
+// ── 독서 통계 ──────────────────────────────────────────────
+// 집계는 서버(BookshelfService)가 담당하고 여기서는 표시만 한다.
+function renderReadingStats(stats) {
+    const section = document.getElementById('readingStats');
+    const hasStats = Boolean(stats && stats.totalCount > 0);
+    section.classList.toggle('hidden', !hasStats);
+
+    const profileCount = document.getElementById('readBooksCount');
+    if (profileCount) profileCount.textContent = hasStats ? stats.totalCount : 0;
+    if (!hasStats) return;
+
+    document.getElementById('statThisMonth').textContent = `${stats.thisMonthCount}권`;
+    document.getElementById('statThisYear').textContent = `${stats.thisYearCount}권`;
+    document.getElementById('statTotal').textContent = `${stats.totalCount}권`;
+    renderMonthlyChart(stats.monthly);
+    renderYearlyList(stats.yearly);
+}
+
+function renderMonthlyChart(monthly) {
+    const chart = document.getElementById('statMonthlyChart');
+    const maxCount = Math.max(...monthly.map(m => m.count), 1);
+    chart.innerHTML = '';
+    chart.setAttribute('aria-label', monthly.map(m => `${m.year}년 ${m.month}월 ${m.count}권`).join(', '));
+
+    monthly.forEach((m, idx) => {
+        const col = document.createElement('div');
+        col.className = 'bs-chart-col';
+        if (idx === monthly.length - 1) col.classList.add('current');
+        col.title = `${m.year}년 ${m.month}월 ${m.count}권`;
+
+        const track = document.createElement('div');
+        track.className = 'bs-chart-track';
+        if (m.count > 0) {
+            const count = document.createElement('span');
+            count.className = 'bs-chart-count';
+            count.textContent = m.count;
+            track.appendChild(count);
+        }
+        const bar = document.createElement('div');
+        bar.className = 'bs-chart-bar';
+        bar.style.setProperty('--ratio', m.count / maxCount);
+        track.appendChild(bar);
+
+        // 좁은 화면에서는 CSS로 '월'을 숨겨 숫자만 표시한다.
+        const label = document.createElement('span');
+        label.className = 'bs-chart-label';
+        label.textContent = m.month;
+        const unit = document.createElement('span');
+        unit.className = 'bs-chart-unit';
+        unit.textContent = '월';
+        label.appendChild(unit);
+
+        col.append(track, label);
+        chart.appendChild(col);
+    });
+}
+
+function renderYearlyList(yearly) {
+    const list = document.getElementById('statYearlyList');
+    list.innerHTML = '';
+    yearly.forEach(y => {
+        const chip = document.createElement('span');
+        chip.className = 'bs-year';
+        chip.textContent = `${y.year}년 ${y.count}권`;
+        list.appendChild(chip);
+    });
+}
+
+// 책장 변경은 이미 저장된 뒤이므로, 통계 갱신 실패를 저장 실패처럼 알리지 않는다.
+async function refreshReadingStats() {
+    try {
+        renderReadingStats(await API.get('/api/bookshelf/stats'));
+    } catch (e) {
+        console.error('독서 통계 갱신 실패:', e);
+    }
 }
 
 // ── 렌더링 ────────────────────────────────────────────────
@@ -600,6 +678,7 @@ async function bsSaveEntryEdit() {
         bsSortEntries();
         closeEntryDetailModal();
         bsRerender();
+        refreshReadingStats();
     } catch (e) {
         Alert.error(e.message);
     }
@@ -615,6 +694,7 @@ async function bsDeleteEntry() {
         bsFinished = bsFinished.filter(e => e.id !== id);
         closeEntryDetailModal();
         bsRerender();
+        refreshReadingStats();
     } catch (e) {
         Alert.error(e.message);
     }
@@ -718,6 +798,7 @@ async function bsSubmitEntry() {
         bsSortEntries();
         closeAddBookModal();
         bsRerender();
+        refreshReadingStats();
     } catch (e) {
         Alert.error(e.message);
     }

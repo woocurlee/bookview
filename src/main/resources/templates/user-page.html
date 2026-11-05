@@ -46,7 +46,7 @@
                 </div>
                 <div class="bg-stone-50 border border-stone-200 p-5 md:p-6 rounded-xl text-center">
                     <div class="text-3xl mb-2">📖</div>
-                    <div class="text-2xl font-bold text-stone-700" th:text="${readBooksCount}">0</div>
+                    <div id="readBooksCount" class="text-2xl font-bold text-stone-700" th:text="${readBooksCount}">0</div>
                     <div class="text-stone-600 text-sm">읽은 책</div>
                 </div>
             </div>
@@ -111,6 +111,20 @@
             <!-- 읽은 책 패널 -->
             <link rel="stylesheet" href="/css/bookshelf.css">
             <div id="panelShelf" class="hidden" th:attr="data-owner=${isOwner}">
+                <!-- 독서 통계 (완독 기록이 없으면 숨김) -->
+                <section id="readingStats" class="bs-stats hidden" aria-labelledby="readingStatsTitle">
+                    <h3 id="readingStatsTitle" class="bs-stats-title">📊 독서 통계</h3>
+                    <div class="bs-stats-summary">
+                        <div class="bs-stat"><span id="statThisMonth" class="bs-stat-num">0</span><span class="bs-stat-label">이번 달</span></div>
+                        <div class="bs-stat"><span id="statThisYear" class="bs-stat-num">0</span><span class="bs-stat-label">올해</span></div>
+                        <div class="bs-stat"><span id="statTotal" class="bs-stat-num">0</span><span class="bs-stat-label">전체</span></div>
+                    </div>
+                    <p class="bs-stats-sub">최근 12개월</p>
+                    <div id="statMonthlyChart" class="bs-chart" role="img"></div>
+                    <p class="bs-stats-sub">연도별</p>
+                    <div id="statYearlyList" class="bs-years"></div>
+                </section>
+
                 <div class="bs-toolbar">
                     <h2 class="bs-h2">📚 내 서재</h2>
                     <div class="spacer"></div>
@@ -156,6 +170,7 @@
     <!-- 책장 데이터 island (서버에서 이미 `<` 이스케이프 처리됨) -->
     <script type="application/json" id="bookshelfReadingData" th:utext="${bookshelfReadingJson}">[]</script>
     <script type="application/json" id="bookshelfFinishedData" th:utext="${bookshelfFinishedJson}">[]</script>
+    <script type="application/json" id="readingStatsData" th:utext="${readingStatsJson}">{}</script>
 
 
     <!-- 프로필 수정 모달 (본인만) -->

@@ -127,6 +127,7 @@ class ViewController(
         model.addAttribute("bookshelfReadingJson", toBookshelfJson(data.bookshelf.reading))
         model.addAttribute("bookshelfFinishedJson", toBookshelfJson(data.bookshelf.finished))
         model.addAttribute("readBooksCount", data.bookshelf.finished.size)
+        model.addAttribute("readingStatsJson", toDataIslandJson(data.readingStats))
         model.addAttribute(
             "metaDescription",
             "${data.profileUser.nickname}의 BookView 프로필 - ${data.reviews.size}개의 리뷰, 평균 별점 ${data.stats.avgRating}",
@@ -221,9 +222,11 @@ class ViewController(
     fun termsOfService(): String = "redirect:/terms-of-service.html"
 
     /** 책장 항목을 뷰 DTO로 변환해 JSON 문자열로 직렬화한다. (XSS 방지로 `<` 이스케이프) */
-    private fun toBookshelfJson(entries: List<BookshelfEntry>): String =
+    private fun toBookshelfJson(entries: List<BookshelfEntry>): String = toDataIslandJson(entries.map { it.toView() })
+
+    private fun toDataIslandJson(value: Any): String =
         objectMapper
-            .writeValueAsString(entries.map { it.toView() })
+            .writeValueAsString(value)
             .replace("<", "\\u003c")
 
     private fun buildJsonLd(detail: ReviewDetail): String {

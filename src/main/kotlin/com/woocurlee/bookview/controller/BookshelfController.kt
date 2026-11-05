@@ -1,11 +1,13 @@
 package com.woocurlee.bookview.controller
 
 import com.woocurlee.bookview.dto.AddBookshelfEntryRequest
+import com.woocurlee.bookview.dto.ReadingStats
 import com.woocurlee.bookview.dto.UpdateBookshelfEntryRequest
 import com.woocurlee.bookview.service.BookshelfService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -18,6 +20,12 @@ import org.springframework.web.bind.annotation.RestController
 class BookshelfController(
     private val bookshelfService: BookshelfService,
 ) {
+    /** 책장 변경 후 화면의 통계를 새로고침 없이 갱신할 때 사용한다. */
+    @GetMapping("/stats")
+    fun getReadingStats(
+        @AuthenticationPrincipal principal: Any,
+    ): ResponseEntity<ReadingStats> = ResponseEntity.ok(bookshelfService.getReadingStats(googleIdOf(principal)))
+
     @PostMapping
     fun addEntry(
         @RequestBody request: AddBookshelfEntryRequest,
